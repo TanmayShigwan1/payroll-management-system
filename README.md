@@ -293,7 +293,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email [your-email@domain.com] or create an issue on GitHub.
+For support, email [Tanmay - ajayshigwan7@gmail.com] or create an issue on GitHub.
 
 ## 🙏 Acknowledgments
 
@@ -302,6 +302,12 @@ For support, email [your-email@domain.com] or create an issue on GitHub.
 - Bootstrap team for the responsive CSS framework
 - Font Awesome for the beautiful icons
 - All open-source contributors who made this possible
+- Team 
+Arjan Rane (Backend + Database) 
+Mayuresh Sawant (Frontend)
+Shubham Shelke (Database)
+Tanmay Shigwan (Frontend + Backend)
+
 
 ---
 
