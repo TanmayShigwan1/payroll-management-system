@@ -1,0 +1,61 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: payroll-management-system
+  
+  # PostgreSQL Database Configuration
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/payroll_db}
+    username: ${DB_USERNAME:payroll_user}
+    password: ${DB_PASSWORD:payroll123}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+    defer-datasource-initialization: true
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:payrollSecretKey2023ForAuthentication}
+  expiration: 86400000
+
+# CORS Configuration
+cors:
+  allowed-origins: 
+    - https://payroll-frontend.onrender.com
+    - http://localhost:3000
+    - https://localhost:3000
+
+# Logging Configuration
+logging:
+  level:
+    com.payroll: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

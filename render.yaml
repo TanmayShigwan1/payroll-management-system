@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: payroll-backend
+    env: java
+    plan: free
+    buildCommand: cd backend && ./mvnw clean package -DskipTests
+    startCommand: cd backend && java -Dspring.profiles.active=prod -jar target/*.jar
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_URL
+        fromDatabase:
+          name: payroll-db
+          property: connectionString
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/actuator/health
+    
+  - type: web
+    name: payroll-frontend
+    env: node
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://payroll-backend.onrender.com/api
+        
+  - type: pserv
+    name: payroll-db
+    env: postgresql
+    plan: free
+    databaseName: payroll_db
+    databaseUser: payroll_user
