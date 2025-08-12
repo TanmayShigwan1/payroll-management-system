@@ -1,0 +1,22 @@
+# GitHub Setup Commands
+# After creating your repository on GitHub, run these commands:
+
+# 1. Add your GitHub repository as remote origin
+git remote add origin https://github.com/YOUR_USERNAME/payroll-management-system.git
+
+# 2. Rename main branch to main (GitHub default)
+git branch -M main
+
+# 3. Push your code to GitHub
+git push -u origin main
+
+# 4. Verify the upload
+git status
+
+# 5. View your repository
+# Go to: https://github.com/YOUR_USERNAME/payroll-management-system
+
+# Example with actual username:
+# git remote add origin https://github.com/ajayshigwan/payroll-management-system.git
+# git branch -M main
+# git push -u origin main
