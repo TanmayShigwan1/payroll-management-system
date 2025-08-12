@@ -72,9 +72,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
-            .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/auth/**").permitAll()
@@ -95,13 +97,11 @@ public class SecurityConfig {
                 .requestMatchers("/employee/payslips/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
                 // All other requests need authentication
                 .anyRequest().authenticated()
-            );
+            )
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        
-        // For H2 Console
-        http.headers().frameOptions().disable();
 
         return http.build();
     }
