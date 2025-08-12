@@ -194,3 +194,16 @@ echo ""
 echo "🔗 Manual start:"
 echo "Backend: cd backend && ./mvnw spring-boot:run -Dspring.profiles.active=dev"
 echo "Frontend: cd frontend && npm start"
+echo ""
+echo "🚀 Auto-starting the system now..."
+echo ""
+
+# Auto-start the system
+if [ -f "start-dev.sh" ]; then
+    chmod +x start-dev.sh
+    echo "Starting services automatically..."
+    nohup ./start-dev.sh > startup.log 2>&1 &
+    echo "Services starting in background. Check startup.log for details."
+else
+    echo "Warning: start-dev.sh not found. You'll need to start services manually."
+fi
