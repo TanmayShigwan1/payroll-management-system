@@ -1,0 +1,60 @@
+# Gitpod Configuration
+image:
+  file: .gitpod.Dockerfile
+
+# Exposed ports
+ports:
+  - port: 3000
+    onOpen: open-preview
+    name: React Frontend
+    description: Payroll Management Frontend
+  - port: 8080
+    onOpen: notify
+    name: Spring Boot Backend
+    description: Payroll Management API
+  - port: 3306
+    onOpen: ignore
+    name: MySQL Database
+
+# Tasks that run on workspace start
+tasks:
+  - name: Database Setup
+    init: |
+      sudo apt-get update
+      sudo service mysql start
+      sleep 5
+      mysql -e "CREATE DATABASE IF NOT EXISTS payroll_db;"
+      mysql -e "CREATE USER IF NOT EXISTS 'payroll'@'localhost' IDENTIFIED BY 'payroll123';"
+      mysql -e "GRANT ALL PRIVILEGES ON payroll_db.* TO 'payroll'@'localhost';"
+      mysql -e "FLUSH PRIVILEGES;"
+      mysql payroll_db < database/init-db.sql
+      echo "✅ Database setup complete!"
+    
+  - name: Backend (Spring Boot)
+    init: |
+      cd backend
+      echo "📦 Installing backend dependencies..."
+      mvn clean compile
+    command: |
+      cd backend
+      echo "🚀 Starting Spring Boot backend on port 8080..."
+      mvn spring-boot:run
+    
+  - name: Frontend (React)
+    init: |
+      cd frontend
+      echo "📦 Installing frontend dependencies..."
+      npm install
+    command: |
+      cd frontend
+      echo "⚛️ Starting React frontend on port 3000..."
+      npm start
+
+# VS Code extensions
+vscode:
+  extensions:
+    - vscjava.vscode-java-pack
+    - ms-vscode.vscode-typescript-next
+    - bradlc.vscode-tailwindcss
+    - formulahendry.auto-rename-tag
+    - esbenp.prettier-vscode
