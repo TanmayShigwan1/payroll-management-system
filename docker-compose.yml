@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: payroll-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: payroll_db
+      MYSQL_USER: payroll
+      MYSQL_PASSWORD: payroll123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - payroll-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: payroll-backend
+    environment:
+      - DB_USERNAME=payroll
+      - DB_PASSWORD=payroll123
+      - DB_URL=jdbc:mysql://mysql:3306/payroll_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - payroll-network
+    restart: unless-stopped
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: payroll-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
+    networks:
+      - payroll-network
+    restart: unless-stopped
+
+networks:
+  payroll-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
