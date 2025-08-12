@@ -48,6 +48,8 @@ tasks:
     command: |
       cd frontend
       echo "⚛️ Starting React frontend on port 3000..."
+      export DANGEROUSLY_DISABLE_HOST_CHECK=true
+      export HOST=0.0.0.0
       npm start
 
 # VS Code extensions
