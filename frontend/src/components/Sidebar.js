@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { currentUser, hasAnyRole } = useAuth();
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
@@ -69,16 +67,12 @@ const Sidebar = () => {
           PayrollMS
         </h4>
         <small className="text-light">
-          Welcome, {currentUser?.firstName}
+          Welcome, Demo User
         </small>
       </div>
       
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
-          if (!hasAnyRole(item.roles)) {
-            return null;
-          }
-
           return (
             <div key={item.path} className="nav-item">
               <Link

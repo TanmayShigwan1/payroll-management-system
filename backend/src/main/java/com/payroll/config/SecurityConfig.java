@@ -75,33 +75,12 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                // Public endpoints
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/swagger-ui/**").permitAll()
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                // Admin only endpoints
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                // HR and Admin endpoints
-                .requestMatchers("/hr/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/employees/**").hasAnyRole("ADMIN", "HR", "MANAGER")
-                .requestMatchers("/departments/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/payroll/process/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/reports/**").hasAnyRole("ADMIN", "HR", "MANAGER")
-                // Employee can access their own data
-                .requestMatchers("/employee/profile/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                .requestMatchers("/employee/payslips/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                // All other requests need authentication
-                .anyRequest().authenticated()
+                // Allow all requests without authentication
+                .anyRequest().permitAll()
             )
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
-
-        http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

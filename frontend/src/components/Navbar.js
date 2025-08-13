@@ -1,14 +1,6 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
-  const { currentUser, logout } = useAuth();
-
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-    }
-  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white">
@@ -33,9 +25,9 @@ const Navbar = () => {
               </div>
               <div className="text-start">
                 <div className="fw-bold">
-                  {currentUser?.firstName} {currentUser?.lastName}
+                  Demo User
                 </div>
-                <small className="text-muted">{currentUser?.role}</small>
+                <small className="text-muted">Admin/HR/Employee</small>
               </div>
             </a>
             <ul className="dropdown-menu dropdown-menu-end">
@@ -49,10 +41,12 @@ const Navbar = () => {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <button className="dropdown-item" onClick={handleLogout}>
-                  <i className="fas fa-sign-out-alt me-2"></i>
-                  Logout
-                </button>
+                <div className="dropdown-item-text">
+                  <small>Available Users:</small><br/>
+                  <small>• admin/admin123</small><br/>
+                  <small>• hr_manager/hr123</small><br/>
+                  <small>• employee/emp123</small>
+                </div>
               </li>
             </ul>
           </div>
