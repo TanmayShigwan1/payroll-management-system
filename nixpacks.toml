@@ -1,8 +1,11 @@
+[providers]
+java = "17"
+
 [phases.build]
-cmd = "cd backend && mvn clean package -DskipTests"
+cmd = "cd backend && ./mvnw clean package -DskipTests || mvn clean package -DskipTests"
 
 [phases.start]
-cmd = "cd backend && java -jar target/payroll-management-system-1.0.0.jar"
+cmd = "cd backend && java -jar target/*.jar"
 
 [variables]
 MAVEN_OPTS = "-Xmx1024m"
