@@ -56,9 +56,12 @@ export const formatCurrency = (amount, currency = 'USD') => {
   }
 };
 
-export default {
+// Create a named export object
+const currencyUtils = {
   convertUSDtoINR,
   convertINRtoUSD,
   formatCurrency,
   USD_TO_INR_RATE
 };
+
+export default currencyUtils;

@@ -59,7 +59,7 @@ const EmployeeForm = () => {
     annualSalary: Yup.number()
       .when('employeeType', {
         is: 'SALARIED',
-        then: Yup.number()
+        then: (schema) => schema
           .required('Annual salary is required')
           .positive('Annual salary must be positive')
       }),
@@ -67,7 +67,7 @@ const EmployeeForm = () => {
     bonusPercentage: Yup.number()
       .when('employeeType', {
         is: 'SALARIED',
-        then: Yup.number()
+        then: (schema) => schema
           .min(0, 'Bonus percentage cannot be negative')
           .max(100, 'Bonus percentage cannot exceed 100%')
       }),
@@ -75,7 +75,7 @@ const EmployeeForm = () => {
     hourlyRate: Yup.number()
       .when('employeeType', {
         is: 'HOURLY',
-        then: Yup.number()
+        then: (schema) => schema
           .required('Hourly rate is required')
           .positive('Hourly rate must be positive')
       }),
@@ -83,7 +83,7 @@ const EmployeeForm = () => {
     hoursWorked: Yup.number()
       .when('employeeType', {
         is: 'HOURLY',
-        then: Yup.number()
+        then: (schema) => schema
           .required('Hours worked is required')
           .positive('Hours worked must be positive')
       }),
@@ -91,14 +91,14 @@ const EmployeeForm = () => {
     overtimeHours: Yup.number()
       .when('employeeType', {
         is: 'HOURLY',
-        then: Yup.number()
+        then: (schema) => schema
           .min(0, 'Overtime hours cannot be negative')
       }),
       
     overtimeRateMultiplier: Yup.number()
       .when('employeeType', {
         is: 'HOURLY',
-        then: Yup.number()
+        then: (schema) => schema
           .min(1, 'Overtime rate multiplier must be at least 1')
       })
   });
