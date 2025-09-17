@@ -7,9 +7,7 @@
 -- CREATE DATABASE payroll_db;
 
 -- Then reconnect to the payroll_db before running the rest of this script
--- You can connect using: \c payroll_db (in psql) or by selecting the database in your tool
 
--- For tracking both salaried and hourly employees in a single table
 -- Create the employees table with inheritance support using discriminator column
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
@@ -25,9 +23,11 @@ CREATE TABLE employees (
     zip_code VARCHAR(20),
     tax_id VARCHAR(50) UNIQUE,
     
-    -- Fields below are for different employee types
+    -- Fields for salaried employees
     annual_salary DECIMAL(12,2),
     bonus_percentage DECIMAL(5,2),
+    
+    -- Fields for hourly employees
     hourly_rate DECIMAL(10,2),
     hours_worked DECIMAL(8,2),
     overtime_hours DECIMAL(8,2),
@@ -144,6 +144,8 @@ CREATE TRIGGER after_payslip_insert
 AFTER INSERT ON pay_slips
 FOR EACH ROW
 EXECUTE FUNCTION log_payslip_insert();
+
+
 
 -- Sample data insertion
 -- Sample Salaried Employees

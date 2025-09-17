@@ -1,16 +1,12 @@
--- Database schema script for Payroll Management System
+-- Database schema script for Payroll Management System (Simplified for VS Code compatibility)
 -- This script creates all required tables with appropriate relationships
 
--- Note: In PostgreSQL, you typically connect directly to a database
--- These commands should be run by a superuser when connected to the postgres database
--- DROP DATABASE IF EXISTS payroll_db;
--- CREATE DATABASE payroll_db;
+-- NOTE: Fields in the employees table:
+-- - employee_type: Differentiates between SALARIED and HOURLY employees
+-- - annual_salary, bonus_percentage: Used only for SALARIED employees
+-- - hourly_rate, hours_worked, overtime_hours, overtime_rate_multiplier: Used only for HOURLY employees
 
--- Then reconnect to the payroll_db before running the rest of this script
--- You can connect using: \c payroll_db (in psql) or by selecting the database in your tool
-
--- For tracking both salaried and hourly employees in a single table
--- Create the employees table with inheritance support using discriminator column
+-- Create the employees table
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
     employee_type VARCHAR(20) NOT NULL,
@@ -24,8 +20,6 @@ CREATE TABLE employees (
     state VARCHAR(50),
     zip_code VARCHAR(20),
     tax_id VARCHAR(50) UNIQUE,
-    
-    -- Fields below are for different employee types
     annual_salary DECIMAL(12,2),
     bonus_percentage DECIMAL(5,2),
     hourly_rate DECIMAL(10,2),
@@ -34,7 +28,6 @@ CREATE TABLE employees (
     overtime_rate_multiplier DECIMAL(4,2)
 );
 
--- Create indexes for employees table
 CREATE INDEX idx_employee_email ON employees(email);
 CREATE INDEX idx_employee_tax_id ON employees(tax_id);
 CREATE INDEX idx_employee_last_name ON employees(last_name);
@@ -61,7 +54,6 @@ CREATE TABLE payrolls (
     CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE
 );
 
--- Create indexes for payrolls table
 CREATE INDEX idx_payroll_employee_id ON payrolls(employee_id);
 CREATE INDEX idx_payroll_period ON payrolls(pay_period_start, pay_period_end);
 CREATE INDEX idx_payroll_processing_date ON payrolls(processing_date);
@@ -81,11 +73,10 @@ CREATE TABLE pay_slips (
     CONSTRAINT fk_payslip_payroll FOREIGN KEY (payroll_id) REFERENCES payrolls (id) ON DELETE CASCADE
 );
 
--- Create indexes for pay_slips table
 CREATE INDEX idx_payslip_number ON pay_slips(payslip_number);
 CREATE INDEX idx_payslip_issue_date ON pay_slips(issue_date);
 
--- Create an audit log table to track important system actions
+-- Create an audit log table
 CREATE TABLE audit_logs (
     id SERIAL PRIMARY KEY,
     action_type VARCHAR(50) NOT NULL,
@@ -96,7 +87,6 @@ CREATE TABLE audit_logs (
     details TEXT
 );
 
--- Create indexes for audit_logs table
 CREATE INDEX idx_audit_action_type ON audit_logs(action_type);
 CREATE INDEX idx_audit_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_audit_timestamp ON audit_logs(action_timestamp);
