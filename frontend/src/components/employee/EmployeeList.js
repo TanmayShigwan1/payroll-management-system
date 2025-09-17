@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Card, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { employeeService } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
 import { toast } from 'react-toastify';
+import { CurrencyContext } from '../../contexts/CurrencyContext';
+import { convertUSDtoINR, formatCurrency } from '../../utils/currencyUtils';
 
 /**
  * EmployeeList component.
@@ -19,6 +21,9 @@ const EmployeeList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [filterType, setFilterType] = useState('all');
+  
+  // Get currency from context
+  const { currency } = useContext(CurrencyContext);
 
   // Fetch employees data
   useEffect(() => {
@@ -239,8 +244,18 @@ const EmployeeList = () => {
                       </td>
                       <td>
                         {employee.employeeType === 'SALARIED' 
-                          ? `$${employee.annualSalary.toLocaleString()} / year` 
-                          : `$${employee.hourlyRate.toFixed(2)} / hour`}
+                          ? `${formatCurrency(
+                              currency === 'USD' 
+                                ? employee.annualSalary 
+                                : convertUSDtoINR(employee.annualSalary),
+                              currency
+                            )} / year` 
+                          : `${formatCurrency(
+                              currency === 'USD' 
+                                ? employee.hourlyRate 
+                                : convertUSDtoINR(employee.hourlyRate),
+                              currency
+                            )} / hour`}
                       </td>
                       <td>
                         <Button 

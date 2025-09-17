@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
 import { employeeService, payrollService } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
+import CurrencyInfo from '../common/CurrencyInfo';
 import { Bar, Pie } from 'react-chartjs-2';
+import { CurrencyContext } from '../../contexts/CurrencyContext';
+import { convertUSDtoINR, formatCurrency } from '../../utils/currencyUtils';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,6 +42,9 @@ const Dashboard = () => {
     hourlyEmployees: 0,
     monthlyPayroll: 0
   });
+  
+  // Get currency from context
+  const { currency } = useContext(CurrencyContext);
 
   useEffect(() => {
     // Fetch dashboard data
@@ -87,8 +93,10 @@ const Dashboard = () => {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
       {
-        label: 'Monthly Payroll (USD)',
-        data: [75000, 78500, 82000, 83500, 85700, 87250],
+        label: `Monthly Payroll (${currency})`,
+        data: currency === 'USD' 
+          ? [75000, 78500, 82000, 83500, 85700, 87250]
+          : [75000, 78500, 82000, 83500, 85700, 87250].map(val => convertUSDtoINR(val)),
         backgroundColor: 'rgba(13, 110, 253, 0.7)',
       },
     ],
@@ -167,7 +175,14 @@ const Dashboard = () => {
                 <i className="bi bi-wallet2"></i>
               </div>
             </div>
-            <h2 className="dashboard-card-value">${stats.monthlyPayroll.toLocaleString()}</h2>
+            <h2 className="dashboard-card-value">
+              {formatCurrency(
+                currency === 'USD' 
+                  ? stats.monthlyPayroll 
+                  : convertUSDtoINR(stats.monthlyPayroll),
+                currency
+              )}
+            </h2>
             <p className="dashboard-card-description">Current month's total</p>
           </Card>
         </Col>
@@ -184,6 +199,7 @@ const Dashboard = () => {
         </Col>
         
         <Col lg={4}>
+          <CurrencyInfo />
           <Card className="mb-4">
             <Card.Header>Employee Distribution</Card.Header>
             <Card.Body>

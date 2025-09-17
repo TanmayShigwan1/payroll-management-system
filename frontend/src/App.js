@@ -14,27 +14,32 @@ import PayrollProcessing from './components/payroll/PayrollProcessing';
 import PaySlipView from './components/payslip/PaySlipView';
 import PaySlipList from './components/payslip/PaySlipList';
 
+// Context providers
+import { CurrencyProvider } from './contexts/CurrencyContext';
+
 import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <div className="content-container">
-        <Sidebar />
-        <Container fluid className="main-content p-4">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/employees" element={<EmployeeList />} />
-            <Route path="/employees/new" element={<EmployeeForm />} />
-            <Route path="/employees/edit/:id" element={<EmployeeForm />} />
-            <Route path="/payroll" element={<PayrollProcessing />} />
-            <Route path="/payslips" element={<PaySlipList />} />
-            <Route path="/payslips/:id" element={<PaySlipView />} />
-          </Routes>
-        </Container>
+    <CurrencyProvider>
+      <div className="app">
+        <Header />
+        <div className="content-container">
+          <Sidebar />
+          <Container fluid className="main-content p-4">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/employees" element={<EmployeeList />} />
+              <Route path="/employees/new" element={<EmployeeForm />} />
+              <Route path="/employees/edit/:id" element={<EmployeeForm />} />
+              <Route path="/payroll" element={<PayrollProcessing />} />
+              <Route path="/payslips" element={<PaySlipList />} />
+              <Route path="/payslips/:id" element={<PaySlipView />} />
+            </Routes>
+          </Container>
+        </div>
       </div>
-    </div>
+    </CurrencyProvider>
   );
 }
 
