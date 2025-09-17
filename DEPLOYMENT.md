@@ -15,8 +15,21 @@ This guide explains how to deploy the Payroll Management System to Vercel and Ra
 2. Create a new project
 3. In the Neon Console, create a new database named `payroll_db`
 4. Get your connection string from the Connection Details tab
-5. Execute the `db-scripts/simplified-schema.sql` script using the Neon SQL Editor (this version has improved compatibility)
-6. Alternatively, use the provided `deploy-to-neon.bat` script to deploy the schema from your local machine
+5. Execute the `db-scripts/db-schema.sql` script using the Neon SQL Editor
+6. Alternatively, use the provided `deploy-schema.bat` or `deploy-schema.sh` script to deploy the schema from your local machine:
+
+   ```bash
+   # Windows
+   set NEON_DB_URL=postgres://user:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+   cd db-scripts
+   deploy-schema.bat
+   
+   # Linux/macOS
+   export NEON_DB_URL=postgres://user:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+   cd db-scripts
+   chmod +x deploy-schema.sh
+   ./deploy-schema.sh
+   ```
 
 ### Backend Deployment (Railway)
 
@@ -51,8 +64,10 @@ This guide explains how to deploy the Payroll Management System to Vercel and Ra
 After creating your database on Neon:
 
 1. Connect to the database using the credentials from Neon dashboard
-2. Run the script from `db-scripts/simplified-schema.sql` to set up your database schema
-3. You can also use the `deploy-to-neon.bat` script which simplifies the deployment process
+2. Run the script from `db-scripts/db-schema.sql` to set up your database schema
+3. You can also use the deployment scripts which simplify the process:
+   - `deploy-schema.bat` for Windows
+   - `deploy-schema.sh` for Linux/macOS
 
 ## Benefits of Using Neon for PostgreSQL
 

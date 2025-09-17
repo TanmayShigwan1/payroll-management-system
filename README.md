@@ -77,7 +77,8 @@ payroll-management-system/
 │   └── package.json            # npm dependencies
 │
 └── db-scripts/                 # Database scripts
-    └── schema.sql              # MySQL schema creation script
+    └── db-schema.sql           # PostgreSQL schema creation script
+    └── deploy-schema.bat       # Deployment script for Neon
 ```
 
 ## Technologies Used
@@ -87,7 +88,8 @@ payroll-management-system/
 - **Java 11**
 - **Spring Boot 2.7.13**
 - **Spring Data JPA**
-- **MySQL 8.0**
+- **PostgreSQL**
+- **Neon (PostgreSQL Service for Production)**
 - **Maven**
 - **Lombok**
 - **JUnit & Mockito** (for testing)
@@ -101,6 +103,7 @@ payroll-management-system/
 - **Chart.js**
 - **Formik & Yup** (for form validation)
 - **React Toastify** (for notifications)
+- **Vercel** (for deployment)
 
 ## Prerequisites
 
@@ -109,27 +112,53 @@ Before setting up the project, ensure you have the following installed:
 - **Java Development Kit (JDK) 11** or higher
 - **Node.js 14** or higher
 - **npm 6** or higher
-- **MySQL 8.0** or higher
+- **PostgreSQL 12** or higher
 - **Maven 3.6** or higher
 
 ## Setup Instructions
 
 ### Database Setup
 
-1. Ensure MySQL server is running.
+#### Local Development (PostgreSQL)
+
+1. Ensure PostgreSQL server is running.
 
 2. Create the database and tables by running the script:
 
    ```bash
-   mysql -u root -p < db-scripts/schema.sql
+   psql -U postgres -d payroll_db -f db-scripts/db-schema.sql
    ```
 
-   Alternatively, you can use a MySQL client like MySQL Workbench to run the script.
+   Alternatively, you can use a PostgreSQL client like pgAdmin to run the script.
 
 3. The script will:
-   - Create a database named `payroll_db`
    - Set up all necessary tables
+   - Create triggers and functions for auditing
    - Create sample data for testing
+
+#### Production Deployment (Neon PostgreSQL)
+
+1. Set the Neon database connection string as an environment variable:
+
+   ```bash
+   # Windows
+   set NEON_DB_URL=postgres://user:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+   
+   # Linux/macOS
+   export NEON_DB_URL=postgres://user:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+   ```
+
+2. Run the deployment script:
+
+   ```bash
+   # Windows
+   cd db-scripts
+   deploy-schema.bat
+   
+   # Linux/macOS
+   cd db-scripts
+   ./deploy-schema.sh
+   ```
 
 ### Backend Setup
 
@@ -142,12 +171,17 @@ Before setting up the project, ensure you have the following installed:
 2. Update database configuration in `src/main/resources/application.properties` if needed:
 
    ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/payroll_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
-   spring.datasource.username=root
-   spring.datasource.password=root
+   # For local PostgreSQL
+   spring.datasource.url=jdbc:postgresql://localhost:5432/payroll_db
+   spring.datasource.username=postgres
+   spring.datasource.password=postgres
+   
+   # For Neon PostgreSQL (production)
+   # spring.profiles.active=neon
    ```
 
-   Change the username and password to match your MySQL credentials.
+   Change the username and password to match your PostgreSQL credentials.
+   For production, set `spring.profiles.active=neon` to use Neon PostgreSQL.
 
 3. Build and run the Spring Boot application:
 

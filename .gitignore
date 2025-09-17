@@ -46,6 +46,15 @@ frontend/yarn-error.log*
 *.tmp
 *.bak
 
+# Old database scripts (deprecated)
+db-scripts/postgres-schema-fixed.sql
+db-scripts/postgres-schema.sql
+db-scripts/reset-schema.sql
+db-scripts/schema.sql
+db-scripts/simplified-schema.sql
+db-scripts/deploy-to-neon.bat
+db-scripts/test-schema.bat
+
 # Misc
 .DS_Store
 *.sw?
