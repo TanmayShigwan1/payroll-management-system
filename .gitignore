@@ -1,0 +1,53 @@
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Backend
+backend/target/
+backend/build/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/!**/src/main/**/target/
+backend/!**/src/test/**/target/
+
+# Frontend
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/build/
+frontend/.DS_Store
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Database
+*.log
+*.lck
+*.tmp
+*.bak
+
+# Misc
+.DS_Store
+*.sw?
+*.lock
+Thumbs.db
