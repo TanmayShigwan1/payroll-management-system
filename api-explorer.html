@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Management System - Backend Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .sidebar {
+            flex: 0 0 300px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            margin-right: 20px;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .api-endpoint {
+            background-color: #e8f4ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 5px solid #0066cc;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .endpoint-description {
+            margin-bottom: 10px;
+        }
+        .try-button {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Payroll Management System - Backend Explorer</h1>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h2>Backend Structure</h2>
+            <ul>
+                <li><a href="backend/src/main/java/com/payroll/system/PayrollManagementSystemApplication.java">Main Application</a></li>
+                <li>
+                    <h3>Controllers</h3>
+                    <ul>
+                        <li><a href="backend/src/main/java/com/payroll/system/controller/EmployeeController.java">Employee Controller</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/controller/PayrollController.java">Payroll Controller</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/controller/PaySlipController.java">PaySlip Controller</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/controller/HealthController.java">Health Controller</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Models</h3>
+                    <ul>
+                        <li><a href="backend/src/main/java/com/payroll/system/model/Employee.java">Employee</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/model/HourlyEmployee.java">Hourly Employee</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/model/SalariedEmployee.java">Salaried Employee</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/model/Payroll.java">Payroll</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/model/PaySlip.java">PaySlip</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Services</h3>
+                    <ul>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/EmployeeService.java">Employee Service</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/PayrollService.java">Payroll Service</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/PaySlipService.java">PaySlip Service</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/impl/EmployeeServiceImpl.java">Employee Service Impl</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/impl/PayrollServiceImpl.java">Payroll Service Impl</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/service/impl/PaySlipServiceImpl.java">PaySlip Service Impl</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Repositories</h3>
+                    <ul>
+                        <li><a href="backend/src/main/java/com/payroll/system/repository/EmployeeRepository.java">Employee Repository</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/repository/HourlyEmployeeRepository.java">Hourly Employee Repository</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/repository/SalariedEmployeeRepository.java">Salaried Employee Repository</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/repository/PayrollRepository.java">Payroll Repository</a></li>
+                        <li><a href="backend/src/main/java/com/payroll/system/repository/PaySlipRepository.java">PaySlip Repository</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Configuration</h3>
+                    <ul>
+                        <li><a href="backend/src/main/java/com/payroll/system/config/CorsConfig.java">CORS Configuration</a></li>
+                        <li><a href="backend/src/main/resources/application.properties">Application Properties</a></li>
+                        <li><a href="backend/src/main/resources/application-neon.properties">Neon Application Properties</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Build</h3>
+                    <ul>
+                        <li><a href="backend/pom.xml">Maven POM</a></li>
+                        <li><a href="backend/Dockerfile">Dockerfile</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="content">
+            <h2>API Endpoints</h2>
+            
+            <div class="api-endpoint">
+                <div class="endpoint-url">GET http://localhost:8080/api/health</div>
+                <div class="endpoint-description">Health check endpoint to verify the API is running correctly.</div>
+                <a class="try-button" href="http://localhost:8080/api/health" target="_blank">Try it</a>
+            </div>
+            
+            <div class="api-endpoint">
+                <div class="endpoint-url">GET http://localhost:8080/api/employees</div>
+                <div class="endpoint-description">Retrieve all employees.</div>
+                <a class="try-button" href="http://localhost:8080/api/employees" target="_blank">Try it</a>
+            </div>
+            
+            <div class="api-endpoint">
+                <div class="endpoint-url">GET http://localhost:8080/api/payrolls</div>
+                <div class="endpoint-description">Retrieve all payrolls.</div>
+                <a class="try-button" href="http://localhost:8080/api/payrolls" target="_blank">Try it</a>
+            </div>
+            
+            <div class="api-endpoint">
+                <div class="endpoint-url">GET http://localhost:8080/api/payslips</div>
+                <div class="endpoint-description">Retrieve all pay slips.</div>
+                <a class="try-button" href="http://localhost:8080/api/payslips" target="_blank">Try it</a>
+            </div>
+
+            <h2>Database Structure</h2>
+            <p>The application uses a PostgreSQL database with the following main tables:</p>
+            <ul>
+                <li><strong>employees</strong> - Stores employee information with inheritance strategy</li>
+                <li><strong>payrolls</strong> - Stores payroll information for each pay period</li>
+                <li><strong>pay_slips</strong> - Stores pay slip records generated from payrolls</li>
+            </ul>
+
+            <h2>Docker Services</h2>
+            <p>The application is running in Docker containers:</p>
+            <ul>
+                <li><strong>PostgreSQL</strong> - Running on port 5432</li>
+                <li><strong>Spring Boot Backend</strong> - Running on port 8080</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
