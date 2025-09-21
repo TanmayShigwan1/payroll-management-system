@@ -1,127 +1,306 @@
 # Payroll Management System
 
-A modern full-stack Payroll Management System built with Spring Boot (backend) and React (frontend).
+A modern, full-stack Payroll Management System built with Spring Boot backend and React frontend, designed to streamline payroll processes for organizations of all sizes.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
-- [Prerequisites](#prerequisites)
-- [Setup Instructions](#setup-instructions)
-  - [Database Setup](#database-setup)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-- [Usage Guide](#usage-guide)
-- [API Documentation](#api-documentation)
-- [Screenshots](#screenshots)
-- [Future Enhancements](#future-enhancements)
-
-## Overview
-
-This Payroll Management System is designed to streamline and automate the payroll process in an organization. It handles both salaried and hourly employees, calculates payroll with proper tax deductions, and generates detailed pay slips.
-
-## Features
+## 🚀 Features
 
 - **Employee Management**
   - Add, edit, and delete employees
   - Support for both salaried and hourly employees
-  - Store employee personal and payment information
+  - Comprehensive employee profiles with contact information
 
 - **Payroll Processing**
-  - Calculate gross pay based on employee type
-  - Apply appropriate tax and benefit deductions
-  - Generate payroll records for each pay period
+  - Automated gross pay calculation based on employee type
+  - Tax and benefit deductions management
+  - Pay period management and tracking
 
 - **Pay Slip Generation**
-  - Create detailed pay slips for each employee
-  - Print-friendly pay slip format
-  - Historical pay slip record keeping
+  - Detailed pay slips for each employee
+  - PDF-ready format for printing
+  - Historical pay slip records
 
-- **Dashboard & Reporting**
-  - Overview of payroll statistics
+- **Dashboard & Analytics**
+  - Real-time payroll statistics
   - Employee distribution visualization
-  - Recent payroll activity tracking
+  - Recent activity tracking
 
-## Project Structure
+- **Multi-Currency Support**
+  - Support for multiple currencies
+  - Real-time currency conversion
+  - Localized formatting
+
+## 🏗️ Architecture
+
+### Backend (Spring Boot)
+- **Java 21** with Spring Boot 3.5.5
+- **JPA/Hibernate** for data persistence
+- **MySQL/PostgreSQL** support
+- **RESTful API** design
+- **Lombok** for reduced boilerplate
+- **Validation** with Bean Validation
+
+### Frontend (React)
+- **React 18** with functional components
+- **React Router** for navigation
+- **Bootstrap** for styling
+- **Axios** for API communication
+- **Chart.js** for data visualization
+- **Context API** for state management
+
+## 📁 Project Structure
 
 ```
 payroll-management-system/
 ├── backend/                    # Spring Boot backend
+│   ├── src/main/java/com/payroll/system/
+│   │   ├── controller/        # REST controllers
+│   │   ├── service/           # Business logic
+│   │   ├── repository/        # Data access layer
+│   │   ├── model/             # Entity classes
+│   │   ├── config/            # Configuration classes
+│   │   └── exception/         # Exception handling
+│   └── src/main/resources/    # Application properties
+├── frontend/                  # React frontend
 │   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/payroll/system/
-│   │   │   │   ├── config/     # Configuration classes
-│   │   │   │   ├── controller/ # REST controllers
-│   │   │   │   ├── exception/  # Exception handling
-│   │   │   │   ├── model/      # JPA entities
-│   │   │   │   ├── repository/ # JPA repositories
-│   │   │   │   └── service/    # Business logic
-│   │   │   └── resources/      # Application properties
-│   │   └── test/               # Unit and integration tests
-│   └── pom.xml                 # Maven dependencies
-│
-├── frontend/                   # React frontend
-│   ├── public/                 # Static files
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   │   ├── common/         # Reusable components
-│   │   │   ├── dashboard/      # Dashboard components
-│   │   │   ├── employee/       # Employee management
-│   │   │   ├── payroll/        # Payroll processing
-│   │   │   └── payslip/        # Pay slip generation
-│   │   ├── services/           # API services
-│   │   ├── App.js              # Main App component
-│   │   └── index.js            # Entry point
-│   └── package.json            # npm dependencies
-│
-└── db-scripts/                 # Database scripts
-    └── db-schema.sql           # PostgreSQL schema creation script
-    └── deploy-schema.bat       # Deployment script for Neon
+│   │   ├── components/        # React components
+│   │   ├── contexts/          # React contexts
+│   │   ├── services/          # API services
+│   │   └── utils/             # Utility functions
+│   └── public/                # Static assets
+├── db-scripts/                # Database scripts
+│   ├── db-schema.sql          # Main database schema
+│   ├── mysql-schema.sql       # MySQL specific schema
+│   └── archive/               # Archived schema files
+├── docs/                      # Documentation
 ```
 
-## Technologies Used
+## 🛠️ Technologies Used
 
-### Backend
+### Backend Stack
+- **Java 21** - Latest LTS version for optimal performance
+- **Spring Boot 3.5.5** - Modern framework with auto-configuration
+- **Spring Data JPA** - Simplified data access layer
+- **MySQL/PostgreSQL** - Flexible database support
+- **Lombok** - Reduced boilerplate code
+- **Maven** - Dependency management and build tool
 
-- **Java 11**
-- **Spring Boot 2.7.13**
-- **Spring Data JPA**
-- **PostgreSQL**
-- **Neon (PostgreSQL Service for Production)**
-- **Maven**
-- **Lombok**
-- **JUnit & Mockito** (for testing)
+### Frontend Stack
+- **React 18** - Latest React with concurrent features
+- **React Router 6** - Client-side routing
+- **Bootstrap 5** - Modern, responsive UI framework
+- **Axios** - HTTP client for API communication
+- **Chart.js** - Interactive data visualization
+- **Context API** - State management
 
-### Frontend
+### DevOps & Deployment
+- **Docker** - Containerization for consistent environments
+- **Docker Compose** - Multi-container application management
+- **Neon** - Serverless PostgreSQL for production
+- **Vercel** - Frontend deployment platform
 
-- **React 18**
-- **React Router 6**
-- **React Bootstrap**
-- **Axios**
-- **Chart.js**
-- **Formik & Yup** (for form validation)
-- **React Toastify** (for notifications)
-- **Vercel** (for deployment)
+## 📋 Prerequisites
 
-## Prerequisites
+Ensure you have the following installed:
 
-Before setting up the project, ensure you have the following installed:
+- **Java 21** or higher
+- **Node.js 18** or higher
+- **Docker & Docker Compose**
+- **Git** for version control
 
-- **Java Development Kit (JDK) 11** or higher
-- **Node.js 14** or higher
-- **npm 6** or higher
-- **PostgreSQL 12** or higher
-- **Maven 3.6** or higher
+## 🚀 Quick Start
 
-## Setup Instructions
+### Option 1: Docker Compose (Recommended)
 
-### Database Setup
+```bash
+# Clone the repository
+git clone https://github.com/TanmayShigwan1/payroll-management-system.git
+cd payroll-management-system
 
-#### Local Development (PostgreSQL)
+# Start all services
+docker-compose up -d
 
-1. Ensure PostgreSQL server is running.
+# Access the application
+# Frontend: http://localhost:3000
+# Backend: http://localhost:8080
+```
+
+### Option 2: Manual Setup
+
+#### Backend Setup
+
+```bash
+cd backend
+
+# Build the application
+mvn clean install
+
+# Run the application
+mvn spring-boot:run
+
+# Or run the JAR file
+java -jar target/payroll-management-system-0.0.1-SNAPSHOT.jar
+```
+
+#### Frontend Setup
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+
+# Build for production
+npm run build
+```
+
+#### Database Setup
+
+**PostgreSQL (Recommended for Production)**
+```bash
+# Create database
+createdb payroll_db
+
+# Run schema script
+psql -d payroll_db -f db-scripts/db-schema.sql
+```
+
+**MySQL (Development)**
+```bash
+# Using Docker
+docker-compose up mysql
+
+# The schema will be automatically loaded
+```
+
+## 🔧 Configuration
+
+### Backend Configuration
+
+Create `backend/src/main/resources/application-local.properties`:
+
+```properties
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/payroll_db
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+
+# JPA Configuration
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=true
+
+# Server Configuration
+server.port=8080
+```
+
+### Frontend Configuration
+
+Update `frontend/src/config.js`:
+
+```javascript
+const config = {
+  API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api',
+  // Add other configuration options here
+};
+
+export default config;
+```
+
+## 📊 API Documentation
+
+The REST API provides the following endpoints:
+
+### Employee Management
+- `GET /api/employees` - Get all employees
+- `GET /api/employees/{id}` - Get employee by ID
+- `POST /api/employees/salaried` - Create salaried employee
+- `POST /api/employees/hourly` - Create hourly employee
+- `PUT /api/employees/{id}` - Update employee
+- `DELETE /api/employees/{id}` - Delete employee
+
+### Payroll Management
+- `GET /api/payroll` - Get all payroll records
+- `GET /api/payroll/{id}` - Get payroll by ID
+- `POST /api/payroll` - Create payroll record
+- `PUT /api/payroll/{id}` - Update payroll record
+
+### Pay Slip Management
+- `GET /api/payslips` - Get all pay slips
+- `GET /api/payslips/{id}` - Get pay slip by ID
+- `GET /api/payslips/employee/{employeeId}` - Get pay slips by employee
+- `POST /api/payslips` - Generate pay slip
+
+## 🔒 Security Features
+
+- Input validation with Bean Validation
+- CORS configuration for secure cross-origin requests
+- Global exception handling
+- SQL injection prevention with JPA
+- XSS protection in frontend
+
+## 🧪 Testing
+
+### Backend Testing
+```bash
+cd backend
+mvn test
+```
+
+### Frontend Testing
+```bash
+cd frontend
+npm test
+```
+
+## 📈 Performance Optimizations
+
+- **Database Indexing** - Optimized queries with proper indexes
+- **Connection Pooling** - Efficient database connection management
+- **Lazy Loading** - Efficient data fetching in React
+- **Code Splitting** - Reduced bundle size with dynamic imports
+- **Caching** - Browser and application-level caching
+
+## 🌟 Future Enhancements
+
+- [ ] Authentication & Authorization (JWT)
+- [ ] Role-based access control
+- [ ] Advanced reporting & analytics
+- [ ] Email notifications for pay slips
+- [ ] Mobile responsive design improvements
+- [ ] Audit logging
+- [ ] Multi-tenant support
+- [ ] Integration with external HR systems
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Tanmay Shigwan**
+- GitHub: [@TanmayShigwan1](https://github.com/TanmayShigwan1)
+- LinkedIn: [Connect with me](https://linkedin.com/in/tanmayshigwan)
+
+## 🙏 Acknowledgments
+
+- Spring Boot community for excellent documentation
+- React team for the amazing framework
+- Bootstrap team for the responsive UI components
+- All contributors who helped improve this project
+
+---
+
+**⭐ If you found this project helpful, please give it a star!**
 
 2. Create the database and tables by running the script:
 

@@ -14,7 +14,7 @@
     <description>A modern payroll management system built with Spring Boot</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>11</java.version>
         <mysql.version>8.0.33</mysql.version>
     </properties>
 
