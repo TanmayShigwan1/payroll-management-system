@@ -1,10 +1,5 @@
 package com.payroll.system.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,10 +9,6 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "pay_slips")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class PaySlip {
 
     @Id
@@ -48,6 +39,43 @@ public class PaySlip {
     
     @Column(name = "generated_timestamp")
     private LocalDateTime generatedTimestamp;
+
+    // Constructors
+    public PaySlip() {}
+
+    public PaySlip(Payroll payroll, String payslipNumber, LocalDate issueDate) {
+        this.payroll = payroll;
+        this.payslipNumber = payslipNumber;
+        this.issueDate = issueDate;
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Payroll getPayroll() { return payroll; }
+    public void setPayroll(Payroll payroll) { this.payroll = payroll; }
+
+    public String getPayslipNumber() { return payslipNumber; }
+    public void setPayslipNumber(String payslipNumber) { this.payslipNumber = payslipNumber; }
+
+    public LocalDate getIssueDate() { return issueDate; }
+    public void setIssueDate(LocalDate issueDate) { this.issueDate = issueDate; }
+
+    public LocalDate getPaymentDate() { return paymentDate; }
+    public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
+
+    public String getBankAccountNumber() { return bankAccountNumber; }
+    public void setBankAccountNumber(String bankAccountNumber) { this.bankAccountNumber = bankAccountNumber; }
+
+    public String getBankRoutingNumber() { return bankRoutingNumber; }
+    public void setBankRoutingNumber(String bankRoutingNumber) { this.bankRoutingNumber = bankRoutingNumber; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getGeneratedTimestamp() { return generatedTimestamp; }
+    public void setGeneratedTimestamp(LocalDateTime generatedTimestamp) { this.generatedTimestamp = generatedTimestamp; }
     
     @PrePersist
     public void prePersist() {

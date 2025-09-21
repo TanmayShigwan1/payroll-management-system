@@ -1,10 +1,5 @@
 package com.payroll.system.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -17,10 +12,6 @@ import java.time.LocalDate;
 @Table(name = "employees")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "employee_type", discriminatorType = DiscriminatorType.STRING)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
 public abstract class Employee {
 
     @Id
@@ -43,7 +34,7 @@ public abstract class Employee {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Past(message = "Hire date must be in the past")
+    @PastOrPresent(message = "Hire date cannot be in the future")
     @Column(name = "hire_date", nullable = false)
     private LocalDate hireDate;
 
@@ -61,6 +52,58 @@ public abstract class Employee {
 
     @Column(name = "tax_id", unique = true)
     private String taxId;
+
+    // Constructors
+    public Employee() {}
+
+    public Employee(String firstName, String lastName, String email, String phoneNumber, 
+                   LocalDate hireDate, String address, String city, String state, 
+                   String zipCode, String taxId) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.hireDate = hireDate;
+        this.address = address;
+        this.city = city;
+        this.state = state;
+        this.zipCode = zipCode;
+        this.taxId = taxId;
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public LocalDate getHireDate() { return hireDate; }
+    public void setHireDate(LocalDate hireDate) { this.hireDate = hireDate; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+
+    public String getZipCode() { return zipCode; }
+    public void setZipCode(String zipCode) { this.zipCode = zipCode; }
+
+    public String getTaxId() { return taxId; }
+    public void setTaxId(String taxId) { this.taxId = taxId; }
 
     /**
      * Abstract method that must be implemented by subclasses to calculate gross pay.

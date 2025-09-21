@@ -1,10 +1,5 @@
 package com.payroll.system.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -15,10 +10,6 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "payrolls")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Payroll {
 
     @Id
@@ -78,6 +69,69 @@ public class Payroll {
     
     @Column(name = "notes")
     private String notes;
+
+    // Constructors
+    public Payroll() {}
+
+    public Payroll(Employee employee, LocalDate payPeriodStart, LocalDate payPeriodEnd,
+                   Double grossPay, Double federalTax, Double stateTax, Double netPay) {
+        this.employee = employee;
+        this.payPeriodStart = payPeriodStart;
+        this.payPeriodEnd = payPeriodEnd;
+        this.grossPay = grossPay;
+        this.federalTax = federalTax;
+        this.stateTax = stateTax;
+        this.netPay = netPay;
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
+
+    public LocalDate getPayPeriodStart() { return payPeriodStart; }
+    public void setPayPeriodStart(LocalDate payPeriodStart) { this.payPeriodStart = payPeriodStart; }
+
+    public LocalDate getPayPeriodEnd() { return payPeriodEnd; }
+    public void setPayPeriodEnd(LocalDate payPeriodEnd) { this.payPeriodEnd = payPeriodEnd; }
+
+    public Double getGrossPay() { return grossPay; }
+    public void setGrossPay(Double grossPay) { this.grossPay = grossPay; }
+
+    public Double getFederalTax() { return federalTax; }
+    public void setFederalTax(Double federalTax) { this.federalTax = federalTax; }
+
+    public Double getStateTax() { return stateTax; }
+    public void setStateTax(Double stateTax) { this.stateTax = stateTax; }
+
+    public Double getSocialSecurity() { return socialSecurity; }
+    public void setSocialSecurity(Double socialSecurity) { this.socialSecurity = socialSecurity; }
+
+    public Double getMedicare() { return medicare; }
+    public void setMedicare(Double medicare) { this.medicare = medicare; }
+
+    public Double getHealthInsurance() { return healthInsurance; }
+    public void setHealthInsurance(Double healthInsurance) { this.healthInsurance = healthInsurance; }
+
+    public Double getRetirementContribution() { return retirementContribution; }
+    public void setRetirementContribution(Double retirementContribution) { this.retirementContribution = retirementContribution; }
+
+    public Double getOtherDeductions() { return otherDeductions; }
+    public void setOtherDeductions(Double otherDeductions) { this.otherDeductions = otherDeductions; }
+
+    public Double getNetPay() { return netPay; }
+    public void setNetPay(Double netPay) { this.netPay = netPay; }
+
+    public LocalDate getProcessingDate() { return processingDate; }
+    public void setProcessingDate(LocalDate processingDate) { this.processingDate = processingDate; }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
     
     @PrePersist
     public void prePersist() {

@@ -36,7 +36,12 @@ const employeeService = {
   // Create new employee
   createEmployee: async (employeeData) => {
     try {
-      const response = await apiClient.post('/employees', employeeData);
+      // Determine endpoint based on employee type
+      const endpoint = employeeData.employeeType === 'hourly' 
+        ? '/employees/hourly' 
+        : '/employees/salaried';
+      
+      const response = await apiClient.post(endpoint, employeeData);
       return response.data;
     } catch (error) {
       console.error('Error creating employee:', error);

@@ -1,28 +1,18 @@
 package com.payroll.system.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.time.LocalDate;
 
 /**
  * Entity class for hourly employees who are paid based on hours worked.
  * Extends the base Employee class with hourly-specific attributes.
  */
 @Entity
-@DiscriminatorValue("HOURLY")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
+@DiscriminatorValue("HourlyEmployee")
 public class HourlyEmployee extends Employee {
 
     @NotNull(message = "Hourly rate is required")
@@ -39,8 +29,34 @@ public class HourlyEmployee extends Employee {
     private Double overtimeHours;
     
     @Column(name = "overtime_rate_multiplier")
-    @lombok.Builder.Default
     private Double overtimeRateMultiplier = 1.5;
+
+    // Constructors
+    public HourlyEmployee() {
+        super();
+    }
+
+    public HourlyEmployee(String firstName, String lastName, String email, String phoneNumber,
+                         LocalDate hireDate, String address, String city, String state,
+                         String zipCode, String taxId, Double hourlyRate, Double hoursWorked) {
+        super(firstName, lastName, email, phoneNumber, hireDate, address, city, state, zipCode, taxId);
+        this.hourlyRate = hourlyRate;
+        this.hoursWorked = hoursWorked;
+        this.overtimeRateMultiplier = 1.5;
+    }
+
+    // Getters and Setters
+    public Double getHourlyRate() { return hourlyRate; }
+    public void setHourlyRate(Double hourlyRate) { this.hourlyRate = hourlyRate; }
+
+    public Double getHoursWorked() { return hoursWorked; }
+    public void setHoursWorked(Double hoursWorked) { this.hoursWorked = hoursWorked; }
+
+    public Double getOvertimeHours() { return overtimeHours; }
+    public void setOvertimeHours(Double overtimeHours) { this.overtimeHours = overtimeHours; }
+
+    public Double getOvertimeRateMultiplier() { return overtimeRateMultiplier; }
+    public void setOvertimeRateMultiplier(Double overtimeRateMultiplier) { this.overtimeRateMultiplier = overtimeRateMultiplier; }
     
     /**
      * Calculates the gross pay for an hourly employee based on:
