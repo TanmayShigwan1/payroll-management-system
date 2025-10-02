@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { paySlipService } from '../../services/api';
+import { employeeService } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
 
@@ -19,109 +19,68 @@ const PaySlipList = () => {
   const [filterEndDate, setFilterEndDate] = useState('');
   const [employees, setEmployees] = useState([]);
 
-  // Fetch payslips data
-  useEffect(() => {
-    const fetchPaySlips = async () => {
+  // Fetch payslips data - SINGLE SOURCE OF TRUTH: Get processed payslips from backend
+  const fetchPaySlips = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch employees for filter dropdown
+      const employeesData = await employeeService.getAllEmployees();
+      const transformedEmployees = employeesData.map(emp => ({
+        id: emp.id,
+        name: `${emp.firstName} ${emp.lastName}`
+      }));
+      setEmployees(transformedEmployees);
+      
+      // Try to fetch actual processed payslips from backend
       try {
-        setLoading(true);
+        // Import paySlipService to get real payslips
+        const { paySlipService } = await import('../../services/api');
+        const paySlipsData = await paySlipService.getAllPaySlips();
         
-        // In a real implementation, you would fetch this data from the backend
-        // For now, we'll simulate it with mock data
+        console.log('Processed payslips from backend:', paySlipsData);
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data for demonstration
-        const mockEmployees = [
-          { id: 1, name: 'John Doe' },
-          { id: 2, name: 'Jane Smith' },
-          { id: 4, name: 'Robert Williams' },
-          { id: 5, name: 'Sarah Brown' }
-        ];
-        
-        const mockPaySlips = [
-          {
-            id: 1,
-            payslipNumber: 'PS-1-20259-1234',
-            employee: {
-              id: 1,
-              name: 'John Doe'
-            },
-            issueDate: '2025-09-16',
-            payPeriodStart: '2025-09-01',
-            payPeriodEnd: '2025-09-15',
-            grossPay: 3125.00,
-            netPay: 1735.94,
-            status: 'Processed'
+        // Transform backend payslips for display
+        const transformedPaySlips = paySlipsData.map(payslip => ({
+          id: payslip.id,
+          payslipNumber: payslip.payslipNumber,
+          employee: {
+            id: payslip.payroll.employee.id,
+            name: `${payslip.payroll.employee.firstName} ${payslip.payroll.employee.lastName}`
           },
-          {
-            id: 2,
-            payslipNumber: 'PS-2-20259-2345',
-            employee: {
-              id: 2,
-              name: 'Jane Smith'
-            },
-            issueDate: '2025-09-16',
-            payPeriodStart: '2025-09-01',
-            payPeriodEnd: '2025-09-15',
-            grossPay: 3541.67,
-            netPay: 1912.41,
-            status: 'Processed'
-          },
-          {
-            id: 3,
-            payslipNumber: 'PS-4-20259-3456',
-            employee: {
-              id: 4,
-              name: 'Robert Williams'
-            },
-            issueDate: '2025-09-16',
-            payPeriodStart: '2025-09-01',
-            payPeriodEnd: '2025-09-15',
-            grossPay: 4375.00,
-            netPay: 2559.06,
-            status: 'Processed'
-          },
-          {
-            id: 4,
-            payslipNumber: 'PS-5-20258-4567',
-            employee: {
-              id: 5,
-              name: 'Sarah Brown'
-            },
-            issueDate: '2025-08-16',
-            payPeriodStart: '2025-08-01',
-            payPeriodEnd: '2025-08-15',
-            grossPay: 3828.75,
-            netPay: 2142.74,
-            status: 'Processed'
-          },
-          {
-            id: 5,
-            payslipNumber: 'PS-1-20258-5678',
-            employee: {
-              id: 1,
-              name: 'John Doe'
-            },
-            issueDate: '2025-08-16',
-            payPeriodStart: '2025-08-01',
-            payPeriodEnd: '2025-08-15',
-            grossPay: 3125.00,
-            netPay: 1735.94,
-            status: 'Processed'
-          }
-        ];
+          issueDate: payslip.issueDate,
+          payPeriodStart: payslip.payroll.payPeriodStart,
+          payPeriodEnd: payslip.payroll.payPeriodEnd,
+          grossPay: Math.round(payslip.payroll.grossPay),
+          netPay: Math.round(payslip.payroll.netPay),
+          status: payslip.status || 'Generated'
+        }));
         
-        setEmployees(mockEmployees);
-        setPaySlips(mockPaySlips);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load payslips');
-        setLoading(false);
+        setPaySlips(transformedPaySlips);
+        
+      } catch (payslipError) {
+        console.warn('No processed payslips found or API error:', payslipError);
+        // If no processed payslips exist, show empty state
+        setPaySlips([]);
       }
-    };
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching payslips:', err);
+      setError('Failed to load payslips');
+      setLoading(false);
+    }
+  };
 
+  // Initial load and auto-refresh every 30 seconds for real-time sync
+  useEffect(() => {
     fetchPaySlips();
+    
+    // Set up auto-refresh interval
+    const refreshInterval = setInterval(fetchPaySlips, 30000); // 30 seconds
+    
+    // Cleanup interval on component unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   // Filter payslips based on search term and filters
@@ -161,6 +120,37 @@ const PaySlipList = () => {
     setFilterEndDate('');
   };
 
+  // Handle manual refresh
+  const handleRefresh = () => {
+    fetchPaySlips();
+  };
+
+  // Handle Excel export
+  const handleExportToExcel = async () => {
+    try {
+      setLoading(true);
+      const { paySlipService } = await import('../../services/api');
+      const excelBlob = await paySlipService.exportAllPaySlipsToExcel();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([excelBlob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `payslips_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ Excel export successful!');
+    } catch (error) {
+      console.error('❌ Excel export failed:', error);
+      setError('Failed to export Excel file');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -185,7 +175,7 @@ const PaySlipList = () => {
         <Card.Body>
           <div className="mb-4">
             <Row>
-              <Col md={4}>
+              <Col md={3}>
                 <Form.Group className="mb-3">
                   <Form.Label>Search</Form.Label>
                   <InputGroup>
@@ -199,7 +189,7 @@ const PaySlipList = () => {
                 </Form.Group>
               </Col>
               
-              <Col md={3}>
+              <Col md={2}>
                 <Form.Group className="mb-3">
                   <Form.Label>Employee</Form.Label>
                   <Form.Select
@@ -242,9 +232,33 @@ const PaySlipList = () => {
                 <Button 
                   variant="outline-secondary" 
                   onClick={handleResetFilters}
-                  className="w-100"
+                  className="w-100 me-2"
                 >
                   Reset
+                </Button>
+              </Col>
+              
+              <Col md={1} className="d-flex align-items-end mb-3">
+                <Button 
+                  variant="primary" 
+                  onClick={handleRefresh}
+                  className="w-100 me-2"
+                  disabled={loading}
+                >
+                  <i className="bi bi-arrow-clockwise me-1"></i>
+                  {loading ? 'Loading...' : 'Refresh'}
+                </Button>
+              </Col>
+              
+              <Col md={1} className="d-flex align-items-end mb-3">
+                <Button 
+                  variant="success" 
+                  onClick={handleExportToExcel}
+                  className="w-100"
+                  disabled={loading}
+                >
+                  <i className="bi bi-file-earmark-excel me-1"></i>
+                  Excel
                 </Button>
               </Col>
             </Row>
@@ -268,7 +282,9 @@ const PaySlipList = () => {
                 {filteredPaySlips.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="text-center py-4">
-                      No payslips found matching your search criteria
+                      {paySlips.length === 0 
+                        ? "No processed payslips found. Please process payroll first using the Payroll Processing page." 
+                        : "No payslips found matching your search criteria"}
                     </td>
                   </tr>
                 ) : (
@@ -278,28 +294,36 @@ const PaySlipList = () => {
                       <td>{paySlip.employee.name}</td>
                       <td>{formatDate(paySlip.issueDate)}</td>
                       <td>{formatDate(paySlip.payPeriodStart)} - {formatDate(paySlip.payPeriodEnd)}</td>
-                      <td>${paySlip.grossPay.toFixed(2)}</td>
-                      <td>${paySlip.netPay.toFixed(2)}</td>
+                      <td>₹{paySlip.grossPay.toLocaleString('en-IN')}</td>
+                      <td>₹{paySlip.netPay.toLocaleString('en-IN')}</td>
                       <td>
                         <span className="badge bg-success">{paySlip.status}</span>
                       </td>
                       <td>
-                        <Button 
-                          as={Link} 
-                          to={`/payslips/${paySlip.id}`} 
-                          variant="outline-primary" 
-                          size="sm"
-                          className="me-2"
-                        >
-                          <i className="bi bi-eye"></i>
-                        </Button>
-                        <Button 
-                          variant="outline-secondary" 
-                          size="sm"
-                          onClick={() => window.open(`/payslips/${paySlip.id}`)}
-                        >
-                          <i className="bi bi-printer"></i>
-                        </Button>
+                        <div className="d-flex gap-1">
+                          <Button 
+                            as={Link} 
+                            to={`/payslips/${paySlip.employee.id}`} 
+                            variant="outline-primary" 
+                            size="sm"
+                            title="View Details"
+                          >
+                            <i className="bi bi-eye me-1"></i>
+                            View
+                          </Button>
+                          <Button 
+                            variant="outline-success" 
+                            size="sm"
+                            title="Download PDF"
+                            onClick={() => {
+                              // In a real app, this would download the PDF
+                              alert('PDF download functionality would be implemented here');
+                            }}
+                          >
+                            <i className="bi bi-download me-1"></i>
+                            PDF
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))

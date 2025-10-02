@@ -32,6 +32,12 @@ public class EmployeeController {
         return ResponseEntity.ok(employees);
     }
 
+    @GetMapping("/department/{departmentId}")
+    public ResponseEntity<List<Employee>> getByDepartment(@PathVariable Long departmentId) {
+        List<Employee> employees = employeeService.getEmployeesByDepartment(departmentId);
+        return ResponseEntity.ok(employees);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
         return employeeService.getEmployeeById(id)
@@ -79,10 +85,65 @@ public class EmployeeController {
 
     @GetMapping("/email/{email}")
     public ResponseEntity<Employee> findByEmail(@PathVariable String email) {
-        Employee employee = employeeService.findByEmail(email);
-        if (employee != null) {
-            return ResponseEntity.ok(employee);
+        return employeeService.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Update employee status (Active, On Leave, Terminated)
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateEmployeeStatus(@PathVariable Long id, @RequestBody Map<String, String> statusUpdate) {
+        try {
+            String newStatus = statusUpdate.get("status");
+            
+            // Validate status value
+            if (newStatus == null || newStatus.trim().isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Status cannot be empty");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            // Validate against allowed status values
+            if (!List.of("Active", "On Leave", "Terminated").contains(newStatus)) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Invalid status value. Allowed values: Active, On Leave, Terminated");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            Employee updatedEmployee = employeeService.updateEmployeeStatus(id, newStatus);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Status updated successfully");
+            response.put("employeeId", id);
+            response.put("newStatus", newStatus);
+            response.put("employee", updatedEmployee);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (ResourceNotFoundException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Employee not found");
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to update employee status: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
-        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/department")
+    public ResponseEntity<Employee> assignDepartment(@PathVariable Long id, @RequestBody Map<String, Long> payload) {
+        Long departmentId = payload.get("departmentId");
+        if (departmentId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Employee updated = employeeService.assignDepartment(id, departmentId);
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

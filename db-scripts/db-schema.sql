@@ -36,13 +36,23 @@ DROP FUNCTION IF EXISTS log_payroll_insert();
 DROP FUNCTION IF EXISTS log_employee_change();
 
 -- Drop tables (in reverse order of dependencies)
+DROP TABLE IF EXISTS time_entries;
 DROP TABLE IF EXISTS pay_slips;
 DROP TABLE IF EXISTS payrolls;
 DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS departments;
 
 -- Create core tables
 -- ==================
+
+-- Departments table - stores organizational structure
+CREATE TABLE departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    cost_center VARCHAR(50),
+    description VARCHAR(255)
+);
 
 -- Employees table - stores information about all employees
 CREATE TABLE employees (
@@ -67,13 +77,17 @@ CREATE TABLE employees (
     hourly_rate DECIMAL(10,2),
     hours_worked DECIMAL(8,2),
     overtime_hours DECIMAL(8,2),
-    overtime_rate_multiplier DECIMAL(4,2)
+    overtime_rate_multiplier DECIMAL(4,2),
+
+    department_id BIGINT,
+    CONSTRAINT fk_employee_department FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE SET NULL
 );
 
 -- Payrolls table - stores payroll calculation results
 CREATE TABLE payrolls (
     id SERIAL PRIMARY KEY,
     employee_id BIGINT NOT NULL,
+    department_id BIGINT,
     pay_period_start DATE NOT NULL,
     pay_period_end DATE NOT NULL,
     gross_pay DECIMAL(12,2) NOT NULL,
@@ -88,8 +102,11 @@ CREATE TABLE payrolls (
     processing_date DATE NOT NULL,
     payment_method VARCHAR(50),
     notes TEXT,
+    regular_hours DECIMAL(10,2),
+    overtime_hours DECIMAL(10,2),
     
-    CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE
+    CONSTRAINT fk_payroll_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE,
+    CONSTRAINT fk_payroll_department FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE SET NULL
 );
 
 -- Pay slips table - stores generated pay slips
@@ -105,6 +122,28 @@ CREATE TABLE pay_slips (
     generated_timestamp TIMESTAMP NOT NULL,
     
     CONSTRAINT fk_payslip_payroll FOREIGN KEY (payroll_id) REFERENCES payrolls (id) ON DELETE CASCADE
+);
+
+-- Time entries table - stores raw attendance data
+CREATE TABLE time_entries (
+    id SERIAL PRIMARY KEY,
+    employee_id BIGINT NOT NULL,
+    department_id BIGINT,
+    entry_date DATE NOT NULL,
+    clock_in TIMESTAMP,
+    clock_out TIMESTAMP,
+    regular_hours DECIMAL(10,2),
+    overtime_hours DECIMAL(10,2),
+    source VARCHAR(30),
+    source_reference VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    imported_at TIMESTAMP,
+    approved_at TIMESTAMP,
+    approved_by VARCHAR(100),
+    notes VARCHAR(255),
+
+    CONSTRAINT fk_time_entry_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_entry_department FOREIGN KEY (department_id) REFERENCES departments (id) ON DELETE SET NULL
 );
 
 -- Audit logs table - tracks system events
@@ -125,15 +164,21 @@ CREATE TABLE audit_logs (
 CREATE INDEX idx_employee_email ON employees(email);
 CREATE INDEX idx_employee_tax_id ON employees(tax_id);
 CREATE INDEX idx_employee_last_name ON employees(last_name);
+CREATE INDEX idx_employee_department ON employees(department_id);
 
 -- Payroll indexes
 CREATE INDEX idx_payroll_employee_id ON payrolls(employee_id);
+CREATE INDEX idx_payroll_department_id ON payrolls(department_id);
 CREATE INDEX idx_payroll_period ON payrolls(pay_period_start, pay_period_end);
 CREATE INDEX idx_payroll_processing_date ON payrolls(processing_date);
 
 -- Pay slip indexes
 CREATE INDEX idx_payslip_number ON pay_slips(payslip_number);
 CREATE INDEX idx_payslip_issue_date ON pay_slips(issue_date);
+
+-- Time entry indexes
+CREATE INDEX idx_time_entry_employee_date ON time_entries(employee_id, entry_date);
+CREATE INDEX idx_time_entry_status ON time_entries(status);
 
 -- Audit log indexes
 CREATE INDEX idx_audit_action_type ON audit_logs(action_type);
@@ -192,26 +237,32 @@ EXECUTE FUNCTION log_payslip_insert();
 -- Sample data (for development/testing)
 -- ====================================
 
+-- Sample Departments
+INSERT INTO departments (name, cost_center, description) VALUES
+('Engineering', 'ENG-100', 'Product engineering and development'),
+('Human Resources', 'HR-200', 'Hiring and employee welfare'),
+('Finance', 'FIN-300', 'Accounting and payroll administration');
+
 -- Sample Salaried Employees
-INSERT INTO employees (employee_type, first_name, last_name, email, phone_number, hire_date, address, city, state, zip_code, tax_id, annual_salary, bonus_percentage)
+INSERT INTO employees (employee_type, first_name, last_name, email, phone_number, hire_date, address, city, state, zip_code, tax_id, annual_salary, bonus_percentage, department_id)
 VALUES 
-('SALARIED', 'John', 'Doe', 'john.doe@example.com', '555-123-4567', '2020-01-15', '123 Main St', 'New York', 'NY', '10001', 'TX-1001', 75000.00, 5.0),
-('SALARIED', 'Jane', 'Smith', 'jane.smith@example.com', '555-234-5678', '2019-06-20', '456 Oak Ave', 'Los Angeles', 'CA', '90001', 'TX-1002', 85000.00, 7.5),
-('SALARIED', 'Michael', 'Johnson', 'michael.johnson@example.com', '555-345-6789', '2021-03-10', '789 Pine St', 'Chicago', 'IL', '60007', 'TX-1003', 65000.00, 4.0);
+('SALARIED', 'John', 'Doe', 'john.doe@example.com', '555-123-4567', '2020-01-15', '123 Main St', 'New York', 'NY', '10001', 'TX-1001', 75000.00, 5.0, 1),
+('SALARIED', 'Jane', 'Smith', 'jane.smith@example.com', '555-234-5678', '2019-06-20', '456 Oak Ave', 'Los Angeles', 'CA', '90001', 'TX-1002', 85000.00, 7.5, 1),
+('SALARIED', 'Michael', 'Johnson', 'michael.johnson@example.com', '555-345-6789', '2021-03-10', '789 Pine St', 'Chicago', 'IL', '60007', 'TX-1003', 65000.00, 4.0, 3);
 
 -- Sample Hourly Employees
-INSERT INTO employees (employee_type, first_name, last_name, email, phone_number, hire_date, address, city, state, zip_code, tax_id, hourly_rate, hours_worked, overtime_hours, overtime_rate_multiplier)
+INSERT INTO employees (employee_type, first_name, last_name, email, phone_number, hire_date, address, city, state, zip_code, tax_id, hourly_rate, hours_worked, overtime_hours, overtime_rate_multiplier, department_id)
 VALUES 
-('HOURLY', 'Robert', 'Williams', 'robert.williams@example.com', '555-456-7890', '2020-09-05', '101 Elm St', 'Houston', 'TX', '77001', 'TX-2001', 25.00, 160.0, 10.0, 1.5),
-('HOURLY', 'Sarah', 'Brown', 'sarah.brown@example.com', '555-567-8901', '2021-05-18', '202 Maple Ave', 'Phoenix', 'AZ', '85001', 'TX-2002', 22.50, 155.0, 5.0, 1.5),
-('HOURLY', 'David', 'Davis', 'david.davis@example.com', '555-678-9012', '2022-01-12', '303 Cedar Blvd', 'Philadelphia', 'PA', '19019', 'TX-2003', 20.00, 160.0, 0.0, 1.5);
+('HOURLY', 'Robert', 'Williams', 'robert.williams@example.com', '555-456-7890', '2020-09-05', '101 Elm St', 'Houston', 'TX', '77001', 'TX-2001', 25.00, 160.0, 10.0, 1.5, 2),
+('HOURLY', 'Sarah', 'Brown', 'sarah.brown@example.com', '555-567-8901', '2021-05-18', '202 Maple Ave', 'Phoenix', 'AZ', '85001', 'TX-2002', 22.50, 155.0, 5.0, 1.5, 2),
+('HOURLY', 'David', 'Davis', 'david.davis@example.com', '555-678-9012', '2022-01-12', '303 Cedar Blvd', 'Philadelphia', 'PA', '19019', 'TX-2003', 20.00, 160.0, 0.0, 1.5, 3);
 
 -- Sample Payroll Records
-INSERT INTO payrolls (employee_id, pay_period_start, pay_period_end, gross_pay, federal_tax, state_tax, social_security, medicare, health_insurance, retirement_contribution, other_deductions, net_pay, processing_date, payment_method)
+INSERT INTO payrolls (employee_id, department_id, pay_period_start, pay_period_end, gross_pay, federal_tax, state_tax, social_security, medicare, health_insurance, retirement_contribution, other_deductions, net_pay, processing_date, payment_method, regular_hours, overtime_hours)
 VALUES 
-(1, '2025-09-01', '2025-09-15', 3125.00, 625.00, 187.50, 193.75, 45.31, 150.00, 187.50, 0.00, 1735.94, '2025-09-16', 'Direct Deposit'),
-(2, '2025-09-01', '2025-09-15', 3541.67, 708.33, 212.50, 219.58, 51.35, 175.00, 212.50, 50.00, 1912.41, '2025-09-16', 'Direct Deposit'),
-(3, '2025-09-01', '2025-09-15', 4375.00, 875.00, 262.50, 271.25, 63.44, 125.00, 218.75, 0.00, 2559.06, '2025-09-16', 'Direct Deposit');
+(1, 1, '2025-09-01', '2025-09-15', 3125.00, 625.00, 187.50, 193.75, 45.31, 150.00, 187.50, 0.00, 1735.94, '2025-09-16', 'Direct Deposit', 80.0, 5.0),
+(2, 1, '2025-09-01', '2025-09-15', 3541.67, 708.33, 212.50, 219.58, 51.35, 175.00, 212.50, 50.00, 1912.41, '2025-09-16', 'Direct Deposit', 80.0, 8.0),
+(3, 3, '2025-09-01', '2025-09-15', 4375.00, 875.00, 262.50, 271.25, 63.44, 125.00, 218.75, 0.00, 2559.06, '2025-09-16', 'Direct Deposit', 80.0, 2.0);
 
 -- Sample PaySlip Records
 INSERT INTO pay_slips (payroll_id, payslip_number, issue_date, payment_date, bank_account_number, bank_routing_number, status, generated_timestamp)
@@ -219,6 +270,12 @@ VALUES
 (1, 'PS-1-20259-1234', '2025-09-16', '2025-09-18', '****1234', '****5678', 'PROCESSED', '2025-09-16 09:30:00'),
 (2, 'PS-2-20259-2345', '2025-09-16', '2025-09-18', '****2345', '****6789', 'PROCESSED', '2025-09-16 09:35:00'),
 (3, 'PS-3-20259-3456', '2025-09-16', '2025-09-18', '****3456', '****7890', 'PROCESSED', '2025-09-16 09:40:00');
+
+-- Sample time entries
+INSERT INTO time_entries (employee_id, department_id, entry_date, clock_in, clock_out, regular_hours, overtime_hours, source, status, imported_at)
+VALUES
+(1, 1, '2025-09-02', '2025-09-02 09:00:00', '2025-09-02 18:00:00', 8.0, 1.0, 'BIOMETRIC', 'APPROVED', '2025-09-02 18:05:00'),
+(4, 2, '2025-09-03', '2025-09-03 08:00:00', '2025-09-03 17:30:00', 8.5, 0.5, 'BIOMETRIC', 'APPROVED', '2025-09-03 17:32:00');
 
 -- Commit transaction
 COMMIT;

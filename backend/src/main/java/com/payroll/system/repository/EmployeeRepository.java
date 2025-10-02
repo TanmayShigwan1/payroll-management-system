@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for Employee entities.
@@ -23,12 +24,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     /**
      * Find an employee by email address.
-     * 
+     *
      * @param email The email address to search for
-     * @return The matching employee or null if not found
+     * @return Optional containing the matching employee if found
      */
-    Employee findByEmail(String email);
-    
+    Optional<Employee> findByEmail(String email);
+
     /**
      * Find employees by last name containing the given string (case insensitive).
      * 
@@ -44,4 +45,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @return The matching employee or null if not found
      */
     Employee findByTaxId(String taxId);
+
+    /**
+     * Find employees belonging to a department.
+     */
+    List<Employee> findByDepartmentId(Long departmentId);
+
+    /**
+     * Check whether any employee exists in a department.
+     */
+    boolean existsByDepartmentId(Long departmentId);
 }

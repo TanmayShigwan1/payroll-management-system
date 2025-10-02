@@ -1,0 +1,67 @@
+# IDE Files
+.idea/
+*.iws
+*.iml
+*.ipr
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+.vscode/
+*.code-workspace
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backend
+backend/target/
+backend/build/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/!**/src/main/**/target/
+backend/!**/src/test/**/target/
+
+# Frontend
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/build/
+frontend/.DS_Store
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Database
+*.log
+*.lck
+*.tmp
+*.bak
+
+# Old database scripts (deprecated)
+db-scripts/postgres-schema-fixed.sql
+db-scripts/postgres-schema.sql
+db-scripts/reset-schema.sql
+db-scripts/schema.sql
+db-scripts/simplified-schema.sql
+db-scripts/deploy-to-neon.bat
+db-scripts/test-schema.bat
+
+# Misc
+.DS_Store
+*.sw?
+*.lock
+Thumbs.db

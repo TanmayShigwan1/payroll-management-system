@@ -126,6 +126,25 @@ PUT /api/employees/{id}
 DELETE /api/employees/{id}
 ```
 
+### Get Employees by Department
+
+```http
+GET /api/employees/department/{departmentId}
+```
+
+### Assign Employee to Department
+
+```http
+PUT /api/employees/{id}/department
+```
+
+**Request Body:**
+```json
+{
+  "departmentId": 2
+}
+```
+
 **Parameters:**
 - `id` (path, required): Employee ID
 
@@ -200,6 +219,109 @@ GET /api/payslips
 
 ```http
 GET /api/payslips/{id}
+```
+
+## Department Management
+
+### List Departments
+
+```http
+GET /api/departments
+```
+
+### Get Department by ID
+
+```http
+GET /api/departments/{id}
+```
+
+### Create Department
+
+```http
+POST /api/departments
+```
+
+**Request Body:**
+```json
+{
+  "name": "Finance",
+  "costCenter": "FIN-300",
+  "description": "Accounting and payroll"
+}
+```
+
+### Update Department
+
+```http
+PUT /api/departments/{id}
+```
+
+### Delete Department
+
+```http
+DELETE /api/departments/{id}
+```
+
+### Department Payroll Summary
+
+```http
+GET /api/departments/{id}/summary?start=2025-09-01&end=2025-09-30
+```
+
+**Response:**
+```json
+{
+  "departmentId": 1,
+  "departmentName": "Engineering",
+  "costCenter": "ENG-100",
+  "totalGrossPay": 150000.00,
+  "totalNetPay": 110000.00,
+  "totalRegularHours": 320.0,
+  "totalOvertimeHours": 24.0
+}
+```
+
+## Time & Attendance
+
+### Record Time Entry
+
+```http
+POST /api/time-entries
+```
+
+**Request Body:**
+```json
+{
+  "employee": { "id": 4 },
+  "entryDate": "2025-09-03",
+  "clockIn": "2025-09-03T08:00:00",
+  "clockOut": "2025-09-03T17:30:00",
+  "source": "BIOMETRIC"
+}
+```
+
+### Bulk Import Time Entries
+
+```http
+POST /api/time-entries/import
+```
+
+### Get Time Entries for Employee
+
+```http
+GET /api/time-entries/employee/{employeeId}?start=2025-09-01&end=2025-09-15&status=APPROVED
+```
+
+### Update Time Entry Status
+
+```http
+PUT /api/time-entries/{id}/status?status=APPROVED&approvedBy=payroll.manager
+```
+
+### Delete Time Entry
+
+```http
+DELETE /api/time-entries/{id}
 ```
 
 ### Get Pay Slips by Employee

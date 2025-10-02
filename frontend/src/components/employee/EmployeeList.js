@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { employeeService } from '../../services/api';
+import { employeeService, departmentService } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
 import { toast } from 'react-toastify';
-import { CurrencyContext } from '../../contexts/CurrencyContext';
-import { convertUSDtoINR, formatCurrency } from '../../utils/currencyUtils';
 
 /**
  * EmployeeList component.
@@ -21,95 +19,82 @@ const EmployeeList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [filterType, setFilterType] = useState('all');
-  
-  // Get currency from context
-  const { currency } = useContext(CurrencyContext);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDepartment, setFilterDepartment] = useState('all');
+  const [showStatusChangeModal, setShowStatusChangeModal] = useState(false);
+  const [statusChangeData, setStatusChangeData] = useState({ employeeId: null, newStatus: '', employeeName: '' });
+  const [departments, setDepartments] = useState([]);
 
-  // Fetch employees data
+  // Function to fetch and format employee data
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch employees from the backend API
+      const employeesData = await employeeService.getAllEmployees();
+      
+      // Debug log to see actual API response
+      console.log('Raw employee data from API:', employeesData);
+      
+      // Map the API response to match frontend expectations
+      const formattedEmployees = employeesData.map(emp => {
+        console.log('Processing employee:', emp);
+        return {
+          id: emp.id,
+          firstName: emp.firstName || 'Unknown',
+          lastName: emp.lastName || 'Name', 
+          email: emp.email,
+          phoneNumber: emp.phoneNumber,
+          hireDate: emp.hireDate,
+          address: emp.address,
+          city: emp.city,
+          state: emp.state,
+          zipCode: emp.zipCode,
+          taxId: emp.taxId,
+          // Include the status from backend (this was missing!)
+          status: emp.status || 'Active',
+          department: emp.department || null,
+          // Derive employee type from salary vs hourly rate (using lowercase for consistency)
+          employeeType: emp.annualSalary && emp.annualSalary > 0 ? 'salaried' : (emp.hourlyRate && emp.hourlyRate > 0 ? 'hourly' : 'unknown'),
+          // Salaried employee fields
+          annualSalary: emp.annualSalary,
+          bonusPercentage: emp.bonusPercentage,
+          // Hourly employee fields
+          hourlyRate: emp.hourlyRate,
+          hoursWorked: emp.hoursWorked,
+          overtimeHours: emp.overtimeHours,
+          overtimeRateMultiplier: emp.overtimeRateMultiplier
+        };
+      });
+      
+      setEmployees(formattedEmployees);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      setError('Failed to load employees');
+      setLoading(false);
+    }
+  };
+
+  // Fetch employees data on component mount
   useEffect(() => {
-    const fetchEmployees = async () => {
+    fetchEmployees();
+
+    const loadDepartments = async () => {
       try {
-        setLoading(true);
-        
-        // In a real implementation, you would fetch this data from the backend
-        // For now, we'll simulate it with mock data
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data for demonstration
-        const mockEmployees = [
-          {
-            id: 1,
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@example.com',
-            phoneNumber: '555-123-4567',
-            hireDate: '2020-01-15',
-            employeeType: 'SALARIED',
-            annualSalary: 75000.00,
-            bonusPercentage: 5.0
-          },
-          {
-            id: 2,
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@example.com',
-            phoneNumber: '555-234-5678',
-            hireDate: '2019-06-20',
-            employeeType: 'SALARIED',
-            annualSalary: 85000.00,
-            bonusPercentage: 7.5
-          },
-          {
-            id: 3,
-            firstName: 'Michael',
-            lastName: 'Johnson',
-            email: 'michael.johnson@example.com',
-            phoneNumber: '555-345-6789',
-            hireDate: '2021-03-10',
-            employeeType: 'SALARIED',
-            annualSalary: 65000.00,
-            bonusPercentage: 4.0
-          },
-          {
-            id: 4,
-            firstName: 'Robert',
-            lastName: 'Williams',
-            email: 'robert.williams@example.com',
-            phoneNumber: '555-456-7890',
-            hireDate: '2020-09-05',
-            employeeType: 'HOURLY',
-            hourlyRate: 25.00,
-            hoursWorked: 160.0,
-            overtimeHours: 10.0
-          },
-          {
-            id: 5,
-            firstName: 'Sarah',
-            lastName: 'Brown',
-            email: 'sarah.brown@example.com',
-            phoneNumber: '555-567-8901',
-            hireDate: '2021-05-18',
-            employeeType: 'HOURLY',
-            hourlyRate: 22.50,
-            hoursWorked: 155.0,
-            overtimeHours: 5.0
-          }
-        ];
-        
-        setEmployees(mockEmployees);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load employees');
-        setLoading(false);
+        const departmentData = await departmentService.getAllDepartments();
+        setDepartments(departmentData);
+      } catch (deptErr) {
+        console.error('Failed to load departments', deptErr);
+        toast.error('Failed to load departments');
       }
     };
 
-    fetchEmployees();
+    loadDepartments();
   }, []);
 
-  // Filter employees based on search term and employee type
+  // Filter employees based on search term, employee type, and status
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = 
       employee.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,10 +103,18 @@ const EmployeeList = () => {
     
     const matchesType = 
       filterType === 'all' || 
-      (filterType === 'salaried' && employee.employeeType === 'SALARIED') ||
-      (filterType === 'hourly' && employee.employeeType === 'HOURLY');
+      (filterType === 'salaried' && employee.employeeType === 'salaried') ||
+      (filterType === 'hourly' && employee.employeeType === 'hourly');
     
-    return matchesSearch && matchesType;
+    const matchesStatus = 
+      filterStatus === 'all' || 
+      (employee.status || 'Active') === filterStatus;
+
+    const matchesDepartment =
+      filterDepartment === 'all' ||
+      (employee.department && String(employee.department.id) === String(filterDepartment));
+    
+    return matchesSearch && matchesType && matchesStatus && matchesDepartment;
   });
 
   // Handle search input change
@@ -147,11 +140,8 @@ const EmployeeList = () => {
       
       if (!employeeToDelete) return;
       
-      // In a real implementation, you would call the API to delete the employee
-      // For now, we'll just simulate it
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Call the API to delete the employee
+      await employeeService.deleteEmployee(employeeToDelete.id);
       
       // Update state by removing the deleted employee
       setEmployees(employees.filter(emp => emp.id !== employeeToDelete.id));
@@ -159,8 +149,65 @@ const EmployeeList = () => {
       toast.success(`Employee ${employeeToDelete.firstName} ${employeeToDelete.lastName} deleted successfully`);
       setEmployeeToDelete(null);
     } catch (err) {
+      console.error('Error deleting employee:', err);
       toast.error('Failed to delete employee');
       setShowDeleteModal(false);
+    }
+  };
+
+  // Handle employee status change
+  const handleStatusChange = async (employeeId, newStatus) => {
+    const employee = employees.find(emp => emp.id === employeeId);
+    
+    // Show confirmation dialog for termination
+    if (newStatus === 'Terminated') {
+      setStatusChangeData({
+        employeeId,
+        newStatus,
+        employeeName: `${employee.firstName} ${employee.lastName}`
+      });
+      setShowStatusChangeModal(true);
+      return;
+    }
+    
+    // For other status changes, update immediately
+    await updateEmployeeStatus(employeeId, newStatus);
+  };
+
+  // Confirm status change (especially for termination)
+  const confirmStatusChange = async () => {
+    setShowStatusChangeModal(false);
+    await updateEmployeeStatus(statusChangeData.employeeId, statusChangeData.newStatus);
+  };
+
+  // Actually update the employee status
+  const updateEmployeeStatus = async (employeeId, newStatus) => {
+    try {
+      // Store the original status for potential rollback
+      const originalEmployee = employees.find(emp => emp.id === employeeId);
+      const originalStatus = originalEmployee?.status || 'Active';
+      
+      // Optimistically update the local state for immediate feedback
+      setEmployees(prevEmployees => 
+        prevEmployees.map(emp => 
+          emp.id === employeeId ? { ...emp, status: newStatus } : emp
+        )
+      );
+      
+      // Update status on the backend
+      await employeeService.updateEmployeeStatus(employeeId, newStatus);
+      
+      // Re-fetch all employee data to ensure full synchronization with backend
+      await fetchEmployees();
+      
+      toast.success(`Employee status updated to ${newStatus}`);
+      
+    } catch (error) {
+      console.error('Failed to update employee status:', error);
+      toast.error('Failed to update employee status');
+      
+      // Re-fetch data on error to ensure consistency
+      await fetchEmployees();
     }
   };
 
@@ -206,6 +253,32 @@ const EmployeeList = () => {
               <option value="salaried">Salaried Employees</option>
               <option value="hourly">Hourly Employees</option>
             </Form.Select>
+            
+            <Form.Select 
+              className="ms-3" 
+              style={{ width: 'auto' }}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Terminated">Terminated</option>
+            </Form.Select>
+
+            <Form.Select
+              className="ms-3"
+              style={{ width: 'auto' }}
+              value={filterDepartment}
+              onChange={(e) => setFilterDepartment(e.target.value)}
+            >
+              <option value="all">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </Form.Select>
           </div>
           
           <div className="table-responsive">
@@ -218,14 +291,16 @@ const EmployeeList = () => {
                   <th>Phone</th>
                   <th>Hire Date</th>
                   <th>Type</th>
+                  <th>Department</th>
                   <th>Pay Rate</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-4">
+                    <td colSpan="9" className="text-center py-4">
                       No employees found matching your search criteria
                     </td>
                   </tr>
@@ -238,24 +313,38 @@ const EmployeeList = () => {
                       <td>{employee.phoneNumber}</td>
                       <td>{new Date(employee.hireDate).toLocaleDateString()}</td>
                       <td>
-                        <span className={`badge ${employee.employeeType === 'SALARIED' ? 'bg-info' : 'bg-warning'}`}>
-                          {employee.employeeType === 'SALARIED' ? 'Salaried' : 'Hourly'}
+                        <span className={`badge ${employee.employeeType === 'salaried' ? 'bg-info' : 'bg-warning'}`}>
+                          {employee.employeeType === 'salaried' ? 'Salaried' : employee.employeeType === 'hourly' ? 'Hourly' : 'Unknown'}
                         </span>
                       </td>
+                      <td>{employee.department?.name || 'Unassigned'}</td>
                       <td>
-                        {employee.employeeType === 'SALARIED' 
-                          ? `${formatCurrency(
-                              currency === 'USD' 
-                                ? employee.annualSalary 
-                                : convertUSDtoINR(employee.annualSalary),
-                              currency
-                            )} / year` 
-                          : `${formatCurrency(
-                              currency === 'USD' 
-                                ? employee.hourlyRate 
-                                : convertUSDtoINR(employee.hourlyRate),
-                              currency
-                            )} / hour`}
+                        {employee.employeeType === 'salaried' && employee.annualSalary
+                          ? `₹${employee.annualSalary.toLocaleString('en-IN')} / year` 
+                          : employee.employeeType === 'hourly' && employee.hourlyRate
+                          ? `₹${employee.hourlyRate.toLocaleString('en-IN')} / hour`
+                          : 'N/A'}
+                      </td>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <span className={`badge me-2 ${
+                            (employee.status || 'Active') === 'Active' ? 'bg-success' :
+                            employee.status === 'On Leave' ? 'bg-warning' :
+                            employee.status === 'Terminated' ? 'bg-danger' : 'bg-success'
+                          }`}>
+                            {employee.status || 'Active'}
+                          </span>
+                          <Form.Select 
+                            size="sm"
+                            value={employee.status || 'Active'} 
+                            onChange={(e) => handleStatusChange(employee.id, e.target.value)}
+                            style={{ width: '120px' }}
+                          >
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Terminated">Terminated</option>
+                          </Form.Select>
+                        </div>
                       </td>
                       <td>
                         <Button 
@@ -303,6 +392,39 @@ const EmployeeList = () => {
           </Button>
           <Button variant="danger" onClick={handleDelete}>
             Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Status Change Confirmation Modal */}
+      <Modal show={showStatusChangeModal} onHide={() => setShowStatusChangeModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Status Change</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {statusChangeData.employeeName && (
+            <div>
+              <p>
+                Are you sure you want to change the status of <strong>{statusChangeData.employeeName}</strong> to <strong>{statusChangeData.newStatus}</strong>?
+              </p>
+              {statusChangeData.newStatus === 'Terminated' && (
+                <div className="alert alert-warning">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  <strong>Warning:</strong> Terminating an employee will affect their access to payroll and benefits. This action should be carefully reviewed.
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowStatusChangeModal(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant={statusChangeData.newStatus === 'Terminated' ? 'danger' : 'primary'} 
+            onClick={confirmStatusChange}
+          >
+            Confirm Change
           </Button>
         </Modal.Footer>
       </Modal>

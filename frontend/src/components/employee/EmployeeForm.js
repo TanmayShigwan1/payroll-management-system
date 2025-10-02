@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
-import { employeeService } from '../../services/api';
+import { employeeService, departmentService } from '../../services/api';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
@@ -21,9 +21,8 @@ const EmployeeForm = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [employeeType, setEmployeeType] = useState('SALARIED');
-  
-  // Initial form values
-  const initialValues = {
+  const [departments, setDepartments] = useState([]);
+  const [initialValues, setInitialValues] = useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -35,6 +34,7 @@ const EmployeeForm = () => {
     zipCode: '',
     taxId: '',
     employeeType: 'SALARIED',
+    departmentId: '',
     // Salaried employee fields
     annualSalary: '',
     bonusPercentage: '',
@@ -43,7 +43,7 @@ const EmployeeForm = () => {
     hoursWorked: '',
     overtimeHours: '',
     overtimeRateMultiplier: '1.5'
-  };
+  });
   
   // Form validation schema
   const validationSchema = Yup.object().shape({
@@ -53,7 +53,8 @@ const EmployeeForm = () => {
     phoneNumber: Yup.string().required('Phone number is required'),
     hireDate: Yup.date().required('Hire date is required').max(new Date(), 'Hire date cannot be in the future'),
     taxId: Yup.string().required('Tax ID is required'),
-    employeeType: Yup.string().required('Employee type is required'),
+  employeeType: Yup.string().required('Employee type is required'),
+  departmentId: Yup.string().nullable(),
     
     // Conditional validation based on employee type
     annualSalary: Yup.number()
@@ -103,86 +104,116 @@ const EmployeeForm = () => {
       })
   });
   
+  // Fetch supporting data
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const departmentData = await departmentService.getAllDepartments();
+        setDepartments(departmentData);
+      } catch (deptErr) {
+        console.error('Failed to load departments', deptErr);
+        toast.error('Failed to load departments');
+      }
+    };
+
+    loadDepartments();
+  }, []);
+
   // Fetch employee data in edit mode
   useEffect(() => {
-    if (isEditMode) {
-      const fetchEmployee = async () => {
-        try {
-          setLoading(true);
-          
-          // In a real implementation, you would fetch this data from the backend
-          // For now, we'll simulate it with mock data
-          
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Mock data for demonstration
-          let mockEmployee;
-          
-          if (id === '1') {
-            mockEmployee = {
-              id: 1,
-              firstName: 'John',
-              lastName: 'Doe',
-              email: 'john.doe@example.com',
-              phoneNumber: '555-123-4567',
-              hireDate: '2020-01-15',
-              address: '123 Main St',
-              city: 'New York',
-              state: 'NY',
-              zipCode: '10001',
-              taxId: 'TX-1001',
-              employeeType: 'SALARIED',
-              annualSalary: 75000.00,
-              bonusPercentage: 5.0
-            };
-          } else if (id === '4') {
-            mockEmployee = {
-              id: 4,
-              firstName: 'Robert',
-              lastName: 'Williams',
-              email: 'robert.williams@example.com',
-              phoneNumber: '555-456-7890',
-              hireDate: '2020-09-05',
-              address: '101 Elm St',
-              city: 'Houston',
-              state: 'TX',
-              zipCode: '77001',
-              taxId: 'TX-2001',
-              employeeType: 'HOURLY',
-              hourlyRate: 25.00,
-              hoursWorked: 160.0,
-              overtimeHours: 10.0,
-              overtimeRateMultiplier: 1.5
-            };
-          } else {
-            throw new Error('Employee not found');
-          }
-          
-          // Update form initial values with employee data
-          setEmployeeType(mockEmployee.employeeType);
-          
-          setLoading(false);
-          return mockEmployee;
-        } catch (err) {
-          setError('Failed to load employee data');
-          setLoading(false);
-          return initialValues;
-        }
-      };
-      
-      fetchEmployee();
+    if (!isEditMode) {
+      return;
     }
+
+    const fetchEmployee = async () => {
+      try {
+        setLoading(true);
+        const employee = await employeeService.getEmployeeById(id);
+
+        const backendType = employee.employeeType || employee.discriminator || '';
+        let detectedType;
+        if (backendType === 'HourlyEmployee') {
+          detectedType = 'HOURLY';
+        } else if (backendType === 'SalariedEmployee') {
+          detectedType = 'SALARIED';
+        } else {
+          const isSalaried = employee.annualSalary && employee.annualSalary > 0;
+          detectedType = isSalaried ? 'SALARIED' : 'HOURLY';
+        }
+
+        setEmployeeType(detectedType);
+        setInitialValues({
+          firstName: employee.firstName || '',
+          lastName: employee.lastName || '',
+          email: employee.email || '',
+          phoneNumber: employee.phoneNumber || '',
+          hireDate: employee.hireDate || '',
+          address: employee.address || '',
+          city: employee.city || '',
+          state: employee.state || '',
+          zipCode: employee.zipCode || '',
+          taxId: employee.taxId || '',
+          employeeType: detectedType,
+          departmentId: employee.department?.id ? String(employee.department.id) : '',
+          annualSalary: employee.annualSalary != null ? String(employee.annualSalary) : '',
+          bonusPercentage: employee.bonusPercentage != null ? String(employee.bonusPercentage) : '',
+          hourlyRate: employee.hourlyRate != null ? String(employee.hourlyRate) : '',
+          hoursWorked: employee.hoursWorked != null ? String(employee.hoursWorked) : '',
+          overtimeHours: employee.overtimeHours != null ? String(employee.overtimeHours) : '',
+          overtimeRateMultiplier: employee.overtimeRateMultiplier != null ? String(employee.overtimeRateMultiplier) : '1.5'
+        });
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load employee data', err);
+        setError('Failed to load employee data');
+        setLoading(false);
+      }
+    };
+
+    fetchEmployee();
   }, [id, isEditMode]);
 
   // Handle form submission
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      // In a real implementation, you would call the API to save the employee
-      // For now, we'll just simulate it
+      setError(null);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Prepare the data for API call
+      const { departmentId, ...restValues } = values;
+      const apiEmployeeType = employeeType === 'HOURLY' ? 'HourlyEmployee' : 'SalariedEmployee';
+
+      const normalizedData = {
+        ...restValues,
+        employeeType: apiEmployeeType,
+        annualSalary: values.annualSalary ? parseFloat(values.annualSalary) : null,
+        bonusPercentage: values.bonusPercentage ? parseFloat(values.bonusPercentage) : null,
+        hourlyRate: values.hourlyRate ? parseFloat(values.hourlyRate) : null,
+        hoursWorked: values.hoursWorked ? parseFloat(values.hoursWorked) : null,
+        overtimeHours: values.overtimeHours ? parseFloat(values.overtimeHours) : null,
+        overtimeRateMultiplier: values.overtimeRateMultiplier ? parseFloat(values.overtimeRateMultiplier) : null,
+        department: departmentId ? { id: parseInt(departmentId, 10) } : null
+      };
+      
+      let response;
+      if (isEditMode) {
+        // Update existing employee
+        response = await employeeService.updateEmployee(id, normalizedData);
+        if (departmentId) {
+          await employeeService.assignDepartment(id, parseInt(departmentId, 10));
+        }
+      } else {
+        // Create new employee based on type
+        if (employeeType === 'SALARIED') {
+          response = await employeeService.createSalariedEmployee(normalizedData);
+        } else {
+          response = await employeeService.createHourlyEmployee(normalizedData);
+        }
+
+        if (response?.id && departmentId) {
+          await employeeService.assignDepartment(response.id, parseInt(departmentId, 10));
+        }
+      }
       
       toast.success(
         isEditMode 
@@ -219,6 +250,7 @@ const EmployeeForm = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
+            enableReinitialize
           >
             {({
               values,
@@ -370,6 +402,29 @@ const EmployeeForm = () => {
                   </Row>
                 </div>
                 
+                {/* Department Selection */}
+                <div className="form-section">
+                  <h3 className="form-section-title">Department</h3>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Department</Form.Label>
+                    <Form.Select
+                      name="departmentId"
+                      value={values.departmentId}
+                      onChange={(e) => {
+                        handleChange(e);
+                      }}
+                      onBlur={handleBlur}
+                    >
+                      <option value="">Unassigned</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </div>
+
                 {/* Address Information */}
                 <div className="form-section">
                   <h3 className="form-section-title">Address Information</h3>

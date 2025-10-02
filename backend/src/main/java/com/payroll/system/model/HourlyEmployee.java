@@ -5,6 +5,7 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
 
 /**
@@ -20,8 +21,7 @@ public class HourlyEmployee extends Employee {
     @Column(name = "hourly_rate")
     private Double hourlyRate;
     
-    @NotNull(message = "Hours worked is required")
-    @Positive(message = "Hours worked must be positive")
+    @PositiveOrZero(message = "Hours worked must be zero or positive")
     @Column(name = "hours_worked")
     private Double hoursWorked;
     

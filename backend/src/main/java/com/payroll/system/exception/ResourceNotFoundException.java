@@ -30,6 +30,18 @@ public class ResourceNotFoundException extends RuntimeException {
         this.fieldValue = fieldValue;
     }
     
+    /**
+     * Constructs a new resource not found exception with a simple message.
+     * 
+     * @param message The detail message explaining the cause of the exception
+     */
+    public ResourceNotFoundException(String message) {
+        super(message);
+        this.resourceName = "Resource";
+        this.fieldName = "unknown";
+        this.fieldValue = "unknown";
+    }
+    
     public String getResourceName() {
         return resourceName;
     }

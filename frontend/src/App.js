@@ -13,6 +13,10 @@ import EmployeeForm from './components/employee/EmployeeForm';
 import PayrollProcessing from './components/payroll/PayrollProcessing';
 import PaySlipView from './components/payslip/PaySlipView';
 import PaySlipList from './components/payslip/PaySlipList';
+import Reports from './components/reports/Reports';
+import Settings from './components/settings/Settings';
+import DepartmentList from './components/department/DepartmentList';
+import TimeEntryManager from './components/time/TimeEntryManager';
 
 // Context providers
 import { CurrencyProvider } from './contexts/CurrencyContext';
@@ -32,9 +36,13 @@ function App() {
               <Route path="/employees" element={<EmployeeList />} />
               <Route path="/employees/new" element={<EmployeeForm />} />
               <Route path="/employees/edit/:id" element={<EmployeeForm />} />
+              <Route path="/departments" element={<DepartmentList />} />
               <Route path="/payroll" element={<PayrollProcessing />} />
               <Route path="/payslips" element={<PaySlipList />} />
               <Route path="/payslips/:id" element={<PaySlipView />} />
+              <Route path="/time-entries" element={<TimeEntryManager />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </Container>
         </div>

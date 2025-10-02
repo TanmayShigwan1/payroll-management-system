@@ -40,6 +40,10 @@
    - Clear error messages and status updates
    - Cross-platform support (Windows and Linux/macOS)
 
+## Recent Schema Changes
+
+- **2025-10-02**: Introduced organizational departments and time tracking. Added `departments` and `time_entries` tables, linked `employees`/`payrolls` via `department_id`, and tracked `regular_hours`/`overtime_hours` on payroll records with updated sample data and indexes.
+
 4. **Professional Documentation**
    - Updated README with clear instructions
    - Detailed deployment guide with step-by-step instructions

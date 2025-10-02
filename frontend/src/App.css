@@ -48,6 +48,21 @@
   margin-right: 8px;
 }
 
+.header-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.admin-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* Currency selector styles */
 .currency-selector {
   margin-bottom: 0;
@@ -151,9 +166,13 @@
 }
 
 .dashboard-card-value {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   margin: 0.5rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .dashboard-card-description {

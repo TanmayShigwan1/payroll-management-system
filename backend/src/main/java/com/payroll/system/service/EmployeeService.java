@@ -72,7 +72,26 @@ public interface EmployeeService {
      * Find an employee by email address.
      * 
      * @param email The email to search for
-     * @return The matching employee or null
+     * @return Optional containing the matching employee if found
      */
-    Employee findByEmail(String email);
+    Optional<Employee> findByEmail(String email);
+    
+    /**
+     * Update an employee's status.
+     * 
+     * @param id The employee ID
+     * @param newStatus The new status (Active, On Leave, Terminated)
+     * @return The updated employee
+     */
+    Employee updateEmployeeStatus(Long id, String newStatus);
+
+    /**
+     * Get employees by department.
+     */
+    List<Employee> getEmployeesByDepartment(Long departmentId);
+
+    /**
+     * Assign or reassign an employee to a department.
+     */
+    Employee assignDepartment(Long employeeId, Long departmentId);
 }

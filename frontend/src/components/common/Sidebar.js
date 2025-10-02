@@ -11,7 +11,10 @@ const Sidebar = () => {
   
   // Check if the current path matches the given path
   const isActive = (path) => {
-    return location.pathname === path;
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   return (
@@ -34,6 +37,15 @@ const Sidebar = () => {
           <i className="bi bi-people sidebar-nav-icon"></i>
           Employees
         </Nav.Link>
+
+        <Nav.Link 
+          as={Link} 
+          to="/departments" 
+          className={`sidebar-nav-item ${isActive('/departments') ? 'active' : ''}`}
+        >
+          <i className="bi bi-diagram-3 sidebar-nav-icon"></i>
+          Departments
+        </Nav.Link>
         
         <Nav.Link 
           as={Link} 
@@ -42,6 +54,15 @@ const Sidebar = () => {
         >
           <i className="bi bi-calculator sidebar-nav-icon"></i>
           Payroll Processing
+        </Nav.Link>
+
+        <Nav.Link 
+          as={Link} 
+          to="/time-entries" 
+          className={`sidebar-nav-item ${isActive('/time-entries') ? 'active' : ''}`}
+        >
+          <i className="bi bi-clock-history sidebar-nav-icon"></i>
+          Time & Attendance
         </Nav.Link>
         
         <Nav.Link 

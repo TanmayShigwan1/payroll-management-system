@@ -1,5 +1,8 @@
 package com.payroll.system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -12,6 +15,11 @@ import java.time.LocalDate;
 @Table(name = "employees")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "employee_type", discriminatorType = DiscriminatorType.STRING)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "employeeType")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = SalariedEmployee.class, name = "SalariedEmployee"),
+    @JsonSubTypes.Type(value = HourlyEmployee.class, name = "HourlyEmployee")
+})
 public abstract class Employee {
 
     @Id
@@ -53,6 +61,14 @@ public abstract class Employee {
     @Column(name = "tax_id", unique = true)
     private String taxId;
 
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "Active";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    @JsonIgnoreProperties({"employees", "hibernateLazyInitializer", "handler"})
+    private Department department;
+
     // Constructors
     public Employee() {}
 
@@ -69,6 +85,7 @@ public abstract class Employee {
         this.state = state;
         this.zipCode = zipCode;
         this.taxId = taxId;
+        this.status = "Active"; // Default status
     }
 
     // Getters and Setters
@@ -104,6 +121,12 @@ public abstract class Employee {
 
     public String getTaxId() { return taxId; }
     public void setTaxId(String taxId) { this.taxId = taxId; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
 
     /**
      * Abstract method that must be implemented by subclasses to calculate gross pay.

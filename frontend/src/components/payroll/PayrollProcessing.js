@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, Table, Alert } from 'react-bootstrap';
-import { employeeService, payrollService } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { employeeService, payrollService, paySlipService } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorAlert from '../common/ErrorAlert';
 import { toast } from 'react-toastify';
@@ -10,6 +11,7 @@ import { toast } from 'react-toastify';
  * Allows administrators to process payrolls for employees.
  */
 const PayrollProcessing = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -25,51 +27,26 @@ const PayrollProcessing = () => {
       try {
         setLoading(true);
         
-        // In a real implementation, you would fetch this data from the backend
-        // For now, we'll simulate it with mock data
+        // Fetch real employee data from backend
+        const employeesData = await employeeService.getAllEmployees();
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Transform the data to match our component's expected format
+        const transformedEmployees = employeesData.map(emp => ({
+          id: emp.id,
+          firstName: emp.firstName,  // API returns firstName directly
+          lastName: emp.lastName,    // API returns lastName directly
+          employeeType: (emp.annualSalary && emp.annualSalary > 0) ? 'SALARIED' : 'HOURLY',
+          annualSalary: emp.annualSalary,
+          hourlyRate: emp.hourlyRate,
+          hoursWorked: emp.hoursWorked || 160, // Default 160 hours if not set
+          overtimeHours: emp.overtimeHours || 0
+        }));
         
-        // Mock data for demonstration
-        const mockEmployees = [
-          {
-            id: 1,
-            firstName: 'John',
-            lastName: 'Doe',
-            employeeType: 'SALARIED',
-            annualSalary: 75000.00
-          },
-          {
-            id: 2,
-            firstName: 'Jane',
-            lastName: 'Smith',
-            employeeType: 'SALARIED',
-            annualSalary: 85000.00
-          },
-          {
-            id: 4,
-            firstName: 'Robert',
-            lastName: 'Williams',
-            employeeType: 'HOURLY',
-            hourlyRate: 25.00,
-            hoursWorked: 160.0,
-            overtimeHours: 10.0
-          },
-          {
-            id: 5,
-            firstName: 'Sarah',
-            lastName: 'Brown',
-            employeeType: 'HOURLY',
-            hourlyRate: 22.50,
-            hoursWorked: 155.0,
-            overtimeHours: 5.0
-          }
-        ];
-        
-        setEmployees(mockEmployees);
+        console.log('Transformed employees:', transformedEmployees);
+        setEmployees(transformedEmployees);
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching employees:', err);
         setError('Failed to load employees');
         setLoading(false);
       }
@@ -88,7 +65,7 @@ const PayrollProcessing = () => {
     setPayPeriodEnd(lastDay.toISOString().split('T')[0]);
   }, []);
 
-  // Handle form submission
+  // Handle form submission - SINGLE SOURCE OF TRUTH: Backend calculates everything
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -101,69 +78,100 @@ const PayrollProcessing = () => {
       setProcessing(true);
       setPayrollResult(null);
       
-      // In a real implementation, you would call the API to process the payroll
-      // For now, we'll simulate it with mock data
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Get the selected employee
-      const employee = employees.find(emp => emp.id === parseInt(selectedEmployee));
-      
-      // Calculate gross pay based on employee type
-      let grossPay = 0;
-      if (employee.employeeType === 'SALARIED') {
-        // Monthly salary (annual salary divided by 12)
-        grossPay = employee.annualSalary / 12;
-      } else if (employee.employeeType === 'HOURLY') {
-        // Regular pay + overtime pay
-        const regularPay = employee.hourlyRate * employee.hoursWorked;
-        const overtimePay = employee.hourlyRate * 1.5 * (employee.overtimeHours || 0);
-        grossPay = regularPay + overtimePay;
-      }
-      
-      // Calculate deductions
-      const federalTax = grossPay * 0.20; // 20% federal tax
-      const stateTax = grossPay * 0.06; // 6% state tax
-      const socialSecurity = grossPay * 0.062; // 6.2% Social Security
-      const medicare = grossPay * 0.0145; // 1.45% Medicare
-      const healthInsurance = 150; // Flat health insurance premium
-      const retirement = grossPay * 0.05; // 5% retirement contribution
-      
-      // Calculate net pay
-      const totalDeductions = federalTax + stateTax + socialSecurity + medicare + healthInsurance + retirement;
-      const netPay = grossPay - totalDeductions;
-      
-      // Create mock payroll result
-      const mockPayrollResult = {
-        id: Math.floor(Math.random() * 1000) + 1,
-        employee: {
-          id: employee.id,
-          name: `${employee.firstName} ${employee.lastName}`,
-          employeeType: employee.employeeType
-        },
+      // Call the backend API to process payroll - SINGLE SOURCE OF TRUTH
+      const payrollData = {
+        employeeId: parseInt(selectedEmployee),
         payPeriodStart: payPeriodStart,
-        payPeriodEnd: payPeriodEnd,
-        grossPay: grossPay,
-        deductions: {
-          federalTax: federalTax,
-          stateTax: stateTax,
-          socialSecurity: socialSecurity,
-          medicare: medicare,
-          healthInsurance: healthInsurance,
-          retirement: retirement,
-          totalDeductions: totalDeductions
-        },
-        netPay: netPay,
-        processingDate: new Date().toISOString().split('T')[0]
+        payPeriodEnd: payPeriodEnd
       };
       
-      setPayrollResult(mockPayrollResult);
-      toast.success('Payroll processed successfully');
+      console.log('Processing payroll with data:', payrollData);
+      
+      // Backend processes and saves the payroll
+      const response = await payrollService.processPayroll(payrollData);
+      
+      console.log('Payroll processing response:', response);
+      
+      if (response.success) {
+        // Get the processed payroll data from backend
+        const processedPayroll = response.payroll;
+        const payslip = response.payslip;
+        
+        // Transform backend data for display
+        const payrollResult = {
+          id: processedPayroll.id,
+          employee: {
+            id: processedPayroll.employee.id,
+            name: `${processedPayroll.employee.firstName} ${processedPayroll.employee.lastName}`,
+            employeeType: processedPayroll.employee.discriminator || 'SALARIED'
+          },
+          payPeriodStart: processedPayroll.payPeriodStart,
+          payPeriodEnd: processedPayroll.payPeriodEnd,
+          grossPay: processedPayroll.grossPay,
+          deductions: {
+            incomeTax: processedPayroll.incomeTax,
+            professionalTax: processedPayroll.professionalTax,
+            providentFund: processedPayroll.providentFund,
+            esi: processedPayroll.esi,
+            healthInsurance: processedPayroll.healthInsurance,
+            retirement: processedPayroll.retirementContribution,
+            totalDeductions: processedPayroll.incomeTax + processedPayroll.providentFund + 
+                           processedPayroll.esi + processedPayroll.professionalTax + 
+                           processedPayroll.healthInsurance + processedPayroll.retirementContribution
+          },
+          netPay: processedPayroll.netPay,
+          processingDate: processedPayroll.processingDate,
+          payslipId: payslip ? payslip.id : null
+        };
+        
+        // Add payslip reference to the result
+        payrollResult.payroll = processedPayroll;
+        payrollResult.payslip = payslip;
+        
+        setPayrollResult(payrollResult);
+        toast.success(`Payroll processed successfully! PaySlip ${payslip.payslipNumber} generated.`, {
+          autoClose: 5000,
+          onClick: () => navigate('/payslips')
+        });
+      } else {
+        toast.error(response.message || 'Failed to process payroll');
+      }
+      
       setProcessing(false);
     } catch (err) {
-      toast.error('Failed to process payroll');
+      console.error('Payroll processing error:', err);
+      toast.error(err.response?.data?.message || 'Failed to process payroll');
       setProcessing(false);
+    }
+  };
+
+  // Handle Generate Pay Slip button click
+  const handleGeneratePaySlip = async (payrollId) => {
+    try {
+      if (payrollResult && payrollResult.payslipId) {
+        // Payslip already exists, navigate to view it
+        navigate(`/payslips/${payrollResult.employee.id}`);
+        return;
+      }
+
+      // Generate new payslip
+      const payslip = await paySlipService.generatePaySlip(payrollId);
+      
+      // Update the payroll result to include payslip info
+      setPayrollResult(prev => ({
+        ...prev,
+        payslip: payslip,
+        payslipId: payslip.id
+      }));
+      
+      toast.success('Pay slip generated successfully!');
+      
+      // Navigate to the payslip view
+      navigate(`/payslips/${payrollResult.employee.id}`);
+      
+    } catch (error) {
+      console.error('Error generating payslip:', error);
+      toast.error('Failed to generate pay slip');
     }
   };
 
@@ -288,47 +296,57 @@ const PayrollProcessing = () => {
                   <tbody>
                     <tr className="table-light">
                       <td><strong>Gross Pay</strong></td>
-                      <td className="text-end"><strong>${payrollResult.grossPay.toFixed(2)}</strong></td>
+                      <td className="text-end"><strong>₹{payrollResult.grossPay.toFixed(2)}</strong></td>
                     </tr>
                     <tr>
-                      <td>Federal Tax</td>
-                      <td className="text-end">${payrollResult.deductions.federalTax.toFixed(2)}</td>
+                      <td>Income Tax</td>
+                      <td className="text-end">₹{payrollResult.deductions.incomeTax.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td>State Tax</td>
-                      <td className="text-end">${payrollResult.deductions.stateTax.toFixed(2)}</td>
+                      <td>Professional Tax</td>
+                      <td className="text-end">₹{payrollResult.deductions.professionalTax.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td>Social Security</td>
-                      <td className="text-end">${payrollResult.deductions.socialSecurity.toFixed(2)}</td>
+                      <td>Provident Fund (PF)</td>
+                      <td className="text-end">₹{payrollResult.deductions.providentFund.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <td>Medicare</td>
-                      <td className="text-end">${payrollResult.deductions.medicare.toFixed(2)}</td>
+                      <td>ESI</td>
+                      <td className="text-end">₹{payrollResult.deductions.esi.toFixed(2)}</td>
                     </tr>
                     <tr>
                       <td>Health Insurance</td>
-                      <td className="text-end">${payrollResult.deductions.healthInsurance.toFixed(2)}</td>
+                      <td className="text-end">₹{payrollResult.deductions.healthInsurance.toFixed(2)}</td>
                     </tr>
                     <tr>
                       <td>Retirement Contribution</td>
-                      <td className="text-end">${payrollResult.deductions.retirement.toFixed(2)}</td>
+                      <td className="text-end">₹{payrollResult.deductions.retirement.toFixed(2)}</td>
                     </tr>
                     <tr className="table-secondary">
                       <td><strong>Total Deductions</strong></td>
-                      <td className="text-end"><strong>${payrollResult.deductions.totalDeductions.toFixed(2)}</strong></td>
+                      <td className="text-end"><strong>₹{payrollResult.deductions.totalDeductions.toFixed(2)}</strong></td>
                     </tr>
                     <tr className="table-primary">
                       <td><strong>Net Pay</strong></td>
-                      <td className="text-end"><strong>${payrollResult.netPay.toFixed(2)}</strong></td>
+                      <td className="text-end"><strong>₹{payrollResult.netPay.toFixed(2)}</strong></td>
                     </tr>
                   </tbody>
                 </Table>
                 
-                <div className="d-flex justify-content-end">
-                  <Button variant="success">
+                <div className="d-flex justify-content-end gap-2">
+                  <Button 
+                    variant="outline-primary"
+                    onClick={() => navigate('/payslips')}
+                  >
+                    <i className="bi bi-list-ul me-2"></i>
+                    View All PaySlips
+                  </Button>
+                  <Button 
+                    variant="success"
+                    onClick={() => handleGeneratePaySlip(payrollResult.payroll.id)}
+                  >
                     <i className="bi bi-file-earmark-text me-2"></i>
-                    Generate Pay Slip
+                    View This PaySlip
                   </Button>
                 </div>
               </Card.Body>

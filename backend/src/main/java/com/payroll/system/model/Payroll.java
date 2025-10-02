@@ -1,8 +1,8 @@
 package com.payroll.system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 /**
@@ -19,14 +19,17 @@ public class Payroll {
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    @JsonIgnoreProperties({"employees", "hibernateLazyInitializer", "handler"})
+    private Department department;
     
     @NotNull(message = "Pay period start date is required")
-    @PastOrPresent(message = "Pay period start date must be in the past or present")
     @Column(name = "pay_period_start", nullable = false)
     private LocalDate payPeriodStart;
     
     @NotNull(message = "Pay period end date is required")
-    @PastOrPresent(message = "Pay period end date must be in the past or present")
     @Column(name = "pay_period_end", nullable = false)
     private LocalDate payPeriodEnd;
     
@@ -34,19 +37,18 @@ public class Payroll {
     @Column(name = "gross_pay", nullable = false)
     private Double grossPay;
     
-    @NotNull(message = "Federal tax is required")
-    @Column(name = "federal_tax", nullable = false)
-    private Double federalTax;
+    @NotNull(message = "Income tax is required")
+    @Column(name = "income_tax", nullable = false)
+    private Double incomeTax;
     
-    @NotNull(message = "State tax is required")
-    @Column(name = "state_tax", nullable = false)
-    private Double stateTax;
+    @Column(name = "provident_fund")
+    private Double providentFund;
     
-    @Column(name = "social_security")
-    private Double socialSecurity;
+    @Column(name = "esi")
+    private Double esi;
     
-    @Column(name = "medicare")
-    private Double medicare;
+    @Column(name = "professional_tax")
+    private Double professionalTax;
     
     @Column(name = "health_insurance")
     private Double healthInsurance;
@@ -70,17 +72,23 @@ public class Payroll {
     @Column(name = "notes")
     private String notes;
 
+    @Column(name = "regular_hours")
+    private Double regularHours;
+
+    @Column(name = "overtime_hours")
+    private Double overtimeHours;
+
     // Constructors
     public Payroll() {}
 
     public Payroll(Employee employee, LocalDate payPeriodStart, LocalDate payPeriodEnd,
-                   Double grossPay, Double federalTax, Double stateTax, Double netPay) {
+                   Double grossPay, Double incomeTax, Double providentFund, Double netPay) {
         this.employee = employee;
         this.payPeriodStart = payPeriodStart;
         this.payPeriodEnd = payPeriodEnd;
         this.grossPay = grossPay;
-        this.federalTax = federalTax;
-        this.stateTax = stateTax;
+        this.incomeTax = incomeTax;
+        this.providentFund = providentFund;
         this.netPay = netPay;
     }
 
@@ -91,6 +99,9 @@ public class Payroll {
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }
 
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
+
     public LocalDate getPayPeriodStart() { return payPeriodStart; }
     public void setPayPeriodStart(LocalDate payPeriodStart) { this.payPeriodStart = payPeriodStart; }
 
@@ -100,17 +111,17 @@ public class Payroll {
     public Double getGrossPay() { return grossPay; }
     public void setGrossPay(Double grossPay) { this.grossPay = grossPay; }
 
-    public Double getFederalTax() { return federalTax; }
-    public void setFederalTax(Double federalTax) { this.federalTax = federalTax; }
+    public Double getIncomeTax() { return incomeTax; }
+    public void setIncomeTax(Double incomeTax) { this.incomeTax = incomeTax; }
 
-    public Double getStateTax() { return stateTax; }
-    public void setStateTax(Double stateTax) { this.stateTax = stateTax; }
+    public Double getProvidentFund() { return providentFund; }
+    public void setProvidentFund(Double providentFund) { this.providentFund = providentFund; }
 
-    public Double getSocialSecurity() { return socialSecurity; }
-    public void setSocialSecurity(Double socialSecurity) { this.socialSecurity = socialSecurity; }
+    public Double getEsi() { return esi; }
+    public void setEsi(Double esi) { this.esi = esi; }
 
-    public Double getMedicare() { return medicare; }
-    public void setMedicare(Double medicare) { this.medicare = medicare; }
+    public Double getProfessionalTax() { return professionalTax; }
+    public void setProfessionalTax(Double professionalTax) { this.professionalTax = professionalTax; }
 
     public Double getHealthInsurance() { return healthInsurance; }
     public void setHealthInsurance(Double healthInsurance) { this.healthInsurance = healthInsurance; }
@@ -132,6 +143,12 @@ public class Payroll {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public Double getRegularHours() { return regularHours; }
+    public void setRegularHours(Double regularHours) { this.regularHours = regularHours; }
+
+    public Double getOvertimeHours() { return overtimeHours; }
+    public void setOvertimeHours(Double overtimeHours) { this.overtimeHours = overtimeHours; }
     
     @PrePersist
     public void prePersist() {
